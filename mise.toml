@@ -1,0 +1,204 @@
+# mise.toml
+#
+# Learn more about Mise-en-Place - https://mise.jdx.dev/getting-started.html
+#
+# Converted from Makefile - Terraform/OpenTofu tasks using Docker
+[tools]
+opentofu = "latest"
+terraform-docs = "latest"
+
+[env]
+ROOT_DIR = "{{config_root}}"
+TERRAFORM_TFVARS = "terraform.tfvars"
+PROJECT_DIR = "{{cwd}}"
+WORKDIR = "/project"
+RESOURCE = ""
+TEMPLATE_DIR = ""
+
+[tasks.help]
+description = "Show available tasks"
+run = "mise tasks"
+
+[tasks.provider]
+description = "Add a local provider file in this template directory"
+dir = "{{cwd}}"
+run = """
+  cp ${ROOT_DIR}/providers.tf.example providers.tf
+"""
+
+[tasks.init]
+description = "Executes Terraform/Tofu `init`."
+dir = "{{cwd}}"
+run = """
+  tofu init
+"""
+
+[tasks."init:migrate"]
+description = "Executes Terraform/Tofu `init` with state migration"
+dir = "{{cwd}}"
+run = """
+  tofu init -migrate-state
+"""
+
+[tasks.fmt]
+description = "Formats the Terraform files in the current directory"
+dir = "{{cwd}}"
+run = """
+  tofu fmt -recursive ${TEMPLATE_DIR}
+"""
+
+[tasks."fmt:all"]
+description = "Formats all Terraform files in the entire repository"
+dir = "{{config_root}}"
+run = """
+  tofu fmt -recursive
+"""
+
+[tasks.plan]
+description = "Executes a Terraform/Tofu `plan`"
+dir = "{{cwd}}"
+depends = ["fmt"]
+run = """
+  tofu plan -var-file=${TERRAFORM_TFVARS:-terraform.tfvars}
+"""
+
+[tasks."plan:store"]
+description = "Executes a Terraform/Tofu `plan` and saves to file"
+dir = "{{cwd}}"
+depends = ["fmt"]
+run = """
+  tofu plan -out=terraform.tfplan -var-file=${TERRAFORM_TFVARS:-terraform.tfvars}
+"""
+
+[tasks."plan:show"]
+description = "Shows a saved Terraform/Tofu plan as Terraform/Tofu display"
+dir = "{{cwd}}"
+run = """
+  tofu show terraform.tfplan
+"""
+
+[tasks."plan:output"]
+description = "Convers a saved Terraform/Tofu plan and outputs to file"
+dir = "{{cwd}}"
+run = """
+  tofu show terraform.tfplan > terraform.tfplan.out
+"""
+
+[tasks.apply]
+description = "Automatically runs a Terraform/Tofu `apply`"
+dir = "{{cwd}}"
+run = """
+  tofu apply -auto-approve -var-file=${TERRAFORM_TFVARS:-terraform.tfvars}
+"""
+
+[tasks.destroy]
+description = "Automatically runs a Terraform/Tofu `destroy`"
+dir = "{{cwd}}"
+run = """
+  tofu destroy -auto-approve -var-file=${TERRAFORM_TFVARS:-terraform.tfvars}
+"""
+
+[tasks.refresh]
+description = "Refreshes the statefile"
+dir = "{{cwd}}"
+run = """
+  tofu apply -refresh-only -auto-approve -var-file=${TERRAFORM_TFVARS:-terraform.tfvars}
+"""
+
+[tasks.output]
+description = "Display the Terraform/Tofu outputs"
+dir = "{{cwd}}"
+usage = '''
+arg "[resource_name]" help="If provided, then the output resource will be returned"
+'''
+run = """
+  tofu output ${usafe_resource_name?} -var-file=${TERRAFORM_TFVARS:-terraform.tfvars}
+"""
+
+[tasks."testing:cleanup"]
+alias = "cleanup"
+description = "Removes the local `.terraform`,`.terraform.lock.hcl`, tfstate, and provider files"
+dir = "{{cwd}}"
+run = """
+  echo ${PROJECT_DIR};
+  echo ${TEMPLATE_DIR};
+  rm -rf ${PROJECT_DIR:-$PWD}/${TEMPLATE_DIR}/.terraform
+  rm -rf ${PROJECT_DIR:-$PWD}/${TEMPLATE_DIR}/.terraform.lock.hcl
+  rm -rf ${PROJECT_DIR:-$PWD}/${TEMPLATE_DIR}/terraform.tfplan
+  rm -rf ${PROJECT_DIR:-$PWD}/${TEMPLATE_DIR}/terraform.tfstate
+  rm -rf ${PROJECT_DIR:-$PWD}/${TEMPLATE_DIR}/terraform.tfstate.backup
+  rm -rf ${PROJECT_DIR:-$PWD}/${TEMPLATE_DIR}/providers.tf
+"""
+
+# Test Suites
+[tasks.cycle]
+description = "Idempotency Check. Runs the commands - init, destroy, apply, and plan"
+dir = "{{cwd}}"
+depends = ["init"]
+run = [
+    {task = "destroy"},
+    {task = "apply"},
+    {task = "plan"}
+]
+
+[tasks.teardown]
+description = "Full Suite Cleanup. Runs the commands - destroy and testing_cleanup"
+dir = "{{cwd}}"
+depends = ["init"]
+run = [
+    {task = "destroy"},
+    {task = "testing:cleanup"}
+]
+
+[tasks."plan:init"]
+description = "Executes a Terraform/Tofu `plan` after an `init`"
+dir = "{{cwd}}"
+depends = ["init"]
+run = [
+    {task = "plan"}
+]
+
+[tasks.deploy]
+description = "Applies the Terraform template. Runs the commands - init, plan, and apply"
+dir = "{{cwd}}"
+depends = ["plan:init"]
+run = [
+    {task = "apply"}
+]
+
+[tasks."deploy:dryrun"]
+description = "Dry run deployment. Runs init and plan without apply"
+dir = "{{cwd}}"
+depends = ["init"]
+run = [
+    {task = "plan"}
+]
+
+[tasks.all]
+description = "End-to-end testing. Runs the commands - deploy, teardown"
+dir = "{{cwd}}"
+depends = ["init"]
+run = [
+    {task = "deploy"},
+    {task = "teardown"}
+]
+
+[tasks.docs]
+description = "Generate readme tables for variables and outputs automatically"
+dir = "{{cwd}}"
+run = "terraform-docs markdown table . --anchor=false"
+
+[tasks.template]
+description = "Generate a new directory using a template type. Must provide the name of the template to create"
+dir = "{{cwd}}"
+usage = '''
+arg "<name>" help="The name of the new template to create"
+arg "[type]" help="Type of template to create" default="terraform" {
+  choices "terraform"
+}
+'''
+run = """
+  echo "Generating a new template '${usage_name?}' of type '${usage_type?}'";
+  mkdir -p "${usage_name?}"
+  cp -R scaffolds/${usage_type?}/. ./"${usage_name?}"
+"""
