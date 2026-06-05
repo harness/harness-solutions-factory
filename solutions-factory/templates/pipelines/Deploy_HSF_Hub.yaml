@@ -1,0 +1,80 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Provision
+        identifier: Provision
+        description: ""
+        type: IACM
+        spec:
+          workspace: ${WORKSPACE_NAME}
+${IACM_STAGE_INFRASTRUCTURE}
+          execution:
+            steps:
+              - step:
+                  type: GitClone
+                  name: Clone Content Library
+                  identifier: Clone_Content_Library
+                  spec:
+                    connectorRef: <+workspace.variables.content_library_connector>
+                    repoName: <+workspace.variables.content_library_repo>
+                    cloneDirectory: <+workspace.variables.content_library>
+                    build:
+                      type: branch
+                      spec:
+                        branch: <+workspace.variables.content_library_branch>
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: init
+                  identifier: init
+                  timeout: 10m
+                  spec:
+                    command: init
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: plan
+                  identifier: plan
+                  timeout: 10m
+                  spec:
+                    command: plan
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              - step:
+                  type: IACMApproval
+                  name: Approve Changes
+                  identifier: Approve_Changes
+                  spec:
+                    autoApprove: true
+                  timeout: 24h
+                contextType: Pipeline
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: apply
+                  identifier: apply
+                  timeout: 1h
+                  spec:
+                    command: apply
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+        tags: {}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+        when:
+          pipelineStatus: Success

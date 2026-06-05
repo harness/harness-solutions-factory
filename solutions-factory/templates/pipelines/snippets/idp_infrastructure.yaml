@@ -1,0 +1,32 @@
+          %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: ${KUBERNETES_CONNECTOR}
+              namespace: ${KUBERNETES_NAMESPACE}
+              %{~ if KUBERNETES_SERVICEACCOUNT != "skipped" ~}
+              serviceAccountName: ${KUBERNETES_SERVICEACCOUNT}
+              %{~ endif ~}
+              automountServiceAccountToken: true
+              %{~ if KUBERNETES_NODESELECTORS != "skipped" ~}
+              nodeSelector:
+                ${KUBERNETES_NODESELECTORS}
+              %{~ else ~}
+              nodeSelector: {}
+              %{~ endif ~}
+              %{~ if KUBERNETES_OVERRIDE_RUNAS != "skipped" ~}
+              containerSecurityContext:
+                runAsUser: "${KUBERNETES_OVERRIDE_RUNAS}"
+              %{~ endif ~}
+              os: Linux
+              %{~ if KUBERNETES_IMAGE_CONNECTOR != "skipped" ~}
+              harnessImageConnectorRef: ${KUBERNETES_IMAGE_CONNECTOR}
+              %{~ endif ~}
+          %{~ else ~}
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          %{~ endif ~}

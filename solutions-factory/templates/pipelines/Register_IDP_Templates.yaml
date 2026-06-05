@@ -1,0 +1,97 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Prepare Payload
+        identifier: Prepare_Payload
+        description: ""
+        type: IDP
+        spec:
+${IDP_STAGE_INFRASTRUCTURE}
+          execution:
+            steps:
+              - stepGroup:
+                  name: Find and Register IDP Catalog Templates
+                  identifier: catalog_management
+                  steps:
+                    - step:
+                        type: GitClone
+                        name: Clone Repository
+                        identifier: Clone_Repository
+                        spec:
+                          connectorRef: ${HTL_REPOSITORY_CONNECTOR}
+                          repoName: ${HTL_REPOSITORY_NAME}
+                          cloneDirectory: /harness/catalog
+                          depth: 1
+                          build:
+                            type: ${HTL_REPOSITORY_TYPE}
+                            spec:
+                              ${HTL_REPOSITORY_TYPE}: ${HTL_REPOSITORY_BRANCH}
+                    - step:
+                        type: Plugin
+                        name: Register IDP Entities
+                        identifier: Register_IDP_Entities
+                        spec:
+                          connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                          image: <+pipeline.variables.HARNESS_IDP_RESOURCE_MANAGER_IMAGE>
+                          settings:
+                            HARNESS_URI: <+variable.account.solutions_factory_endpoint>
+                            HARNESS_ACCT: <+account.identifier>
+                            HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                            WORKING_DIR: <+stepGroup.steps.Clone_Repository.spec.cloneDirectory>
+                            REGISTRATION_FILE: <+<+pipeline.variables.switch>!="single" ?<+pipeline.variables.registration_file> :"">
+                            ENTITY_TYPE: workflow
+                            FILTER_TEMPLATE: <+pipeline.variables.filter_template>
+                            INCLUDE_CHILDREN: <+pipeline.variables.include_children>
+                            SWITCH: <+<+pipeline.variables.switch>!="single" ?<+pipeline.variables.switch> :"register">
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+
+  variables:
+    - name: REGISTRY_CONNECTOR_ID
+      type: String
+      description: Existing Registry Connector used to retrieve container images.
+      required: true
+      value: ${DOCKER_REGISTRY_ID}
+    - name: HARNESS_IDP_RESOURCE_MANAGER_IMAGE
+      type: String
+      description: Harness IDP Resource Manager for managing IDP Resources
+      required: true
+      value: ${HSF_IDP_RESOURCE_MGR_IMAGE}
+    - name: switch
+      type: String
+      description: Select the Registration Flag Type - Main/Register will load resources using registration file, children will load from chosen filter based on filtered registration file, and single will load the resource from the filter directory
+      required: false
+      value: <+input>.default(main).selectOneFrom(main,register,children,single,remove)
+    - name: registration_file
+      type: String
+      description: The Registration file name and path in the repository from which the workflows will be loaded and applied.
+      required: false
+      value: <+input>.default(idp_registration_mgr.yaml)
+    - name: filter_template
+      type: String
+      description: Providing this filter will limit the import process to a single template
+      required: false
+      value: <+input>
+    - name: include_children
+      type: String
+      description: If a filter is provided and this option is 'yes', then any additional templates in the library location will be included
+      required: false
+      value: <+input>.default(no).selectOneFrom(yes,no)
+    - name: HARNESS_PLATFORM_KEY
+      type: Secret
+      description: ""
+      required: true
+      value: ${HARNESS_PLATFORM_KEY}

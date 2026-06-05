@@ -1,0 +1,236 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Manage Workspaces
+        identifier: Manage_Workspaces
+        description: ""
+        %{~ if USE_HARNESS_IDP != "skipped" ~}
+        type: IDP
+        spec:
+${IDP_STAGE_INFRASTRUCTURE}
+        %{~ else ~}
+        type: IACM
+        spec:
+          workspace: ${HSF_CORE_MANAGER}
+${IACM_STAGE_INFRASTRUCTURE}
+        %{~ endif ~}
+          execution:
+            steps:
+              - step:
+                  type: Plugin
+                  name: Collect all Harness Workspace Identifiers by Scope
+                  identifier: Collect_all_Harness_Workspace_Identifiers_by_Scope
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_IACM_WORKSPACE_MGR>
+                    settings:
+                      SWITCH: view
+                      HARNESS_URI: <+variable.account.solutions_factory_endpoint>
+                      HARNESS_ACCT: <+account.identifier>
+                      HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                      WORKSPACE_ORG: <+org.identifier>
+                      WORKSPACE_PROJECT: <+project.identifier>
+                      WORKSPACE_TAGS:
+                        source: <+pipeline.variables.WORKSPACE_SOURCE>
+                        type: <+pipeline.variables.WORKSPACE_TYPE>
+                      FILTER_KEY: <+<+pipeline.variables.WORKSPACE_STATUS>!="any" ?"status" :"">
+                      FILTER_VALUE: <+<+pipeline.variables.WORKSPACE_STATUS>!="any" ?<+pipeline.variables.WORKSPACE_STATUS> :"">
+                      RETURN_KEY: identifier
+              - step:
+                  type: Run
+                  name: Change Workspace Source Connector
+                  identifier: Change_Workspace_Source_Connector
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_IACM_WORKSPACE_MGR>
+                    shell: Python
+                    command: |-
+                      from os import environ
+                      import harness_open_api.configuration as Config
+                      from harness_iacm_workspace_manager.configuration import Config
+                      from harness_iacm_workspace_manager.workspaces import IacmWorkspaceManager
+                      from utils import deep_merge
+
+                      HSF_CONNECTORS = [
+                          "org.Harness_Solutions_Factory_Repo",
+                          "org.Harness_Solutions_Factory_Repo___Official"
+                      ]
+
+                      OFFICIAL_CONNECTORS = [
+                          "org.Harness_Template_Library_Repo",
+                          "org.Harness_Template_Library_Repo___Official"
+                      ]
+
+                      config = Config()
+                      logger = config.return_logging_instance(__name__)
+                      workspace_mgr = IacmWorkspaceManager(config)
+
+                      def workspace_tag_mgr(workspace):
+                          tag_mgr = {}
+                          if workspace.repository_connector in OFFICIAL_CONNECTORS:
+                              tag_mgr["source"] = "official"
+                          elif workspace.repository_connector in HSF_CONNECTORS:
+                              tag_mgr["source"] = "hsf_system"
+                          else:
+                              tag_mgr["source"] = "custom"
+                          tag_mgr["type"] = workspace.repository_path if workspace.repository_path else "unknown"
+
+                          workspace.tags = deep_merge(workspace.tags, tag_mgr)
+                          return workspace
+
+                      def main():
+                          workspaces = [e for e in environ.get('PLUGIN_WORKSPACE_IDS', "").split(",") if e and e != 'null']
+                          if not workspaces:
+                              logger.info("No workspaces provided. Skipping further actions")
+                          else:
+                              for workspace_id in workspaces:
+                                  workspace = workspace_mgr.show_workspace_by_id(workspace_id=workspace_id)
+                                  if workspace.repository_connector != environ["PLUGIN_REPOSITORY_CONNECTOR"]:
+                                      logger.info(f"Preparing Modifications for: {workspace_id} - Begin")
+                                      workspace.repository_connector = environ["PLUGIN_REPOSITORY_CONNECTOR"]
+                                      workspace = workspace_tag_mgr(workspace)
+                                      workspace_mgr.update_workspace_by_id(workspace_id=workspace.identifier, payload=workspace)
+                                      logger.info(f"Preparing Modifications for: {workspace_id} - Complete")
+
+                      if __name__ == "__main__":
+                          main()
+                    envVariables:
+                      PLUGIN_HARNESS_URI: <+variable.account.solutions_factory_endpoint>
+                      PLUGIN_HARNESS_ACCT: <+account.identifier>
+                      PLUGIN_HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                      PLUGIN_WORKSPACE_ORG: <+org.identifier>
+                      PLUGIN_WORKSPACE_PROJECT: <+project.identifier>
+                      PLUGIN_REPOSITORY_CONNECTOR: <+<+pipeline.variables.WORKSPACE_SOURCE>=="official"?<+variable.account.custom_template_library_connector>:<+variable.account.solutions_factory_template_library_connector>>
+                      PLUGIN_WORKSPACE_IDS: <+execution.steps.Collect_all_Harness_Workspace_Identifiers_by_Scope.output.outputVariables.WORKSPACES>
+                  when:
+                    stageStatus: Success
+                    condition: <+pipeline.variables.WORKSPACE_CHANGE_SOURCE> == "yes" && <+execution.steps.Collect_all_Harness_Workspace_Identifiers_by_Scope.output.outputVariables.WORKSPACES>
+              - step:
+                  type: Run
+                  name: Trigger Pipelines
+                  identifier: Trigger_Pipelines
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HSF_SCRIPT_MGR_IMAGE>
+                    shell: Python
+                    command: |-
+                      from os import environ
+                      import harness_open_api.configuration as Config
+                      import harness_open_api.api.pipeline_execute_api as PipeApi
+
+                      configuration = Config.Configuration()
+                      configuration.host = environ['HARNESS_URI']
+                      configuration.api_key['x-api-key'] = environ['HARNESS_API_KEY']
+                      client=PipeApi.ApiClient(configuration)
+
+                      workspace_pipelines={
+                          "drift_check": {"identifier":"Execute_Drift_Analysis","stage":"Drift_Analysis"},
+                          "plan": {"identifier":"Plan_and_Validate_IACM_Workspace","stage":"Plan_and_Validate_Workspace"},
+                          "apply": {"identifier":"Provision_Workspace","stage":"Provision"},
+                          "teardown": {"identifier":"Teardown_IACM_Workspace","stage":"Teardown_Workspace"}
+                      }
+                      ws=PipeApi.PipelineExecuteApi(client)
+                      workspaces = [e for e in environ.get('WORKSPACE_IDS', "").split(",") if e and e != 'null']
+                      pipeline_details = workspace_pipelines[environ.get('WORKSPACE_ACTION', "drift_check")]
+                      if not workspaces:
+                          print("No workspaces provided. Skipping further actions")
+                      else:
+                          for workspace_id in workspaces:
+                              print(f"Preparing Execution for: {workspace_id}")
+                              input_yaml = f"""pipeline:
+                              identifier: {pipeline_details["identifier"]}
+                              stages:
+                              - stage:
+                                  identifier: {pipeline_details["stage"]}
+                                  type: IACM
+                                  spec:
+                                      workspace: {workspace_id}
+                              """
+                              args = {
+                                  "account_identifier": environ['HARNESS_ACCT'],
+                                  "org_identifier": environ['WORKSPACE_ORG'],
+                                  "project_identifier": environ['WORKSPACE_PROJECT'],
+                                  "identifier": pipeline_details["identifier"],
+                                  "body": input_yaml
+                              }
+                              ws.post_pipeline_execute_with_input_set_yaml(**args)
+
+
+                    envVariables:
+                      HARNESS_URI: <+variable.account.solutions_factory_endpoint>
+                      HARNESS_ACCT: <+account.identifier>
+                      HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                      WORKSPACE_ORG: <+org.identifier>
+                      WORKSPACE_PROJECT: <+project.identifier>
+                      WORKSPACE_IDS: <+execution.steps.Collect_all_Harness_Workspace_Identifiers_by_Scope.output.outputVariables.WORKSPACES>
+                      WORKSPACE_ACTION: <+pipeline.variables.WORKSPACE_ACTION>
+                  when:
+                    stageStatus: Success
+                    condition: <+pipeline.variables.WORKSPACE_ACTION> != "none" && <+execution.steps.Collect_all_Harness_Workspace_Identifiers_by_Scope.output.outputVariables.WORKSPACES>
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+  variables:
+    - name: HARNESS_ENDPOINT
+      type: String
+      description: Harness URI
+      required: true
+      value: <+variable.org.HARNESS_ENDPOINT>
+    - name: HARNESS_PLATFORM_KEY
+      type: Secret
+      description: Existing Secret containing Harness API Key
+      required: true
+      value: ${HARNESS_PLATFORM_API_KEY}
+    - name: WORKSPACE_SOURCE
+      type: String
+      description: Validate HSF Source Tag on workspace. Should exist and is used to identify if the template source. Official is from Harness, while Custom is all others
+      required: true
+      value: <+input>.default(custom).selectOneFrom(official,custom)
+    - name: WORKSPACE_TYPE
+      type: String
+      description: This value should match the workspace tag of 'type' to filter the workspaces to verify
+      required: false
+      value: <+input>
+    - name: WORKSPACE_STATUS
+      type: String
+      description: This value should match the workspace statuses to select
+      required: true
+      value: <+input>.default(any).selectOneFrom(any, active, inactive, provisioning, destroying, failed, unknown, apply_needed, drifted)
+    - name: WORKSPACE_CHANGE_SOURCE
+      type: String
+      description: When 'yes', the source will swap from either the Official HTL repo to the Custom Template Library or vice-versa
+      required: true
+      value: <+input>.default(no).selectOneFrom(yes, no)
+    - name: WORKSPACE_ACTION
+      type: String
+      description: What action should be taken on the workspaces? Select 'none' if no action should be taken
+      required: true
+      value: <+input>.default(drift_check).selectOneFrom(none, drift_check, plan, apply, teardown)
+    - name: REGISTRY_CONNECTOR_ID
+      type: String
+      description: Existing Registry Connector used to retrieve container images.
+      required: true
+      value: ${DOCKER_REGISTRY_ID}
+    - name: HARNESS_IACM_WORKSPACE_MGR
+      type: String
+      description: Harness Script Manager for running Python API SDK
+      required: true
+      value: ${HSF_IACM_WORKSPACE_MGR_IMAGE}
+    - name: HSF_SCRIPT_MGR_IMAGE
+      type: String
+      description: Harness Script Manager for running Python API SDK
+      required: true
+      value: ${HSF_SCRIPT_MGR_IMAGE}
+

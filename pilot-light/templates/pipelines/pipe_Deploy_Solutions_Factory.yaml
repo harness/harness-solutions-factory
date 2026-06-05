@@ -1,0 +1,69 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Provision
+        identifier: Provision
+        description: ""
+        type: IACM
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: init
+                  identifier: init
+                  timeout: 10m
+                  spec:
+                    command: init
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: plan
+                  identifier: plan
+                  timeout: 10m
+                  spec:
+                    command: plan
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              - step:
+                  type: IACMApproval
+                  name: Approve Changes
+                  identifier: Approve_Changes
+                  spec:
+                    autoApprove: true
+                  timeout: 1h
+                contextType: Pipeline
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: apply
+                  identifier: apply
+                  timeout: 1h
+                  spec:
+                    command: apply
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+
+          workspace: ${WORKSPACE_NAME}
+${STAGE_INFRASTRUCTURE}
+        tags: {}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+        when:
+          pipelineStatus: Success

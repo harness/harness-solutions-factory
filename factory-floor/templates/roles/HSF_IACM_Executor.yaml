@@ -1,0 +1,9 @@
+---
+permissions: [
+  "core_inputset_edit",
+  "core_inputset_view",
+  "core_pipeline_view",
+  "core_pipeline_execute",
+  "iac_variableset_view",
+  "iac_workspace_view",
+]

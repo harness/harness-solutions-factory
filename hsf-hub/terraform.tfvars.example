@@ -1,0 +1,32 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Required] Provide an organization reference ID.  Must exist before execution
+organization_id = # Required
+
+# [Optional] New Project Identifier. If not provided, then the project_name will be formatted to replace spaces and dashes with underscores
+project_id = null
+
+# [Required] New Project Name
+project_name = "HSF Hub"
+
+# [Optional] New Project Description
+project_description = "Central Hub for Harness Solutions Factory"
+
+# [Required] Content Library Source details must be provided though this variable is unused in Terraform
+content_library_connector = null
+
+# [Required] Content Library Source details must be provided though this variable is unused in Terraform
+content_library_repo = null
+
+# [Optional] Absolute path to the content library
+content_library_branch = "main"
+
+# [Optional] Absolute path to the content library
+content_library = "/harness/content-library"
+
+# [Optional] Name of the registration manager file located in the content_library
+registration_mgr = "hub_registration_mgr.yaml"

@@ -37,6 +37,7 @@ run = """
 description = "Executes Terraform/Tofu `init` with state migration"
 dir = "{{cwd}}"
 run = """
+  rm backend.tf || echo "Skip removing backend file. Not exists"
   tofu init -migrate-state
 """
 

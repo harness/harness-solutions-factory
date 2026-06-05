@@ -1,0 +1,104 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Provision
+        identifier: Provision
+        description: ""
+        type: IACM
+        spec:
+          workspace: <+input>
+${IACM_STAGE_INFRASTRUCTURE}
+          execution:
+            steps:
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: init
+                  identifier: init
+                  timeout: 10m
+                  spec:
+                    command: init
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: plan
+                  identifier: plan
+                  timeout: 10m
+                  spec:
+                    command: plan
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              - step:
+                  type: IACMApproval
+                  name: Approve Changes
+                  identifier: Approve_Changes
+                  spec:
+                    autoApprove: true
+                  timeout: 24h
+                contextType: Pipeline
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: apply
+                  identifier: apply
+                  timeout: 1h
+                  spec:
+                    command: apply
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              %{~ if USE_HARNESS_IDP != "skipped" ~}
+              - step:
+                  type: Plugin
+                  name: Update Workspace In IDP
+                  identifier: Update_Workspace_In_IDP
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_IDP_RESOURCE_MANAGER_IMAGE>
+                    settings:
+                      SWITCH: property
+                      ENTITY_TYPE: resource
+                      HARNESS_URI: <+variable.account.solutions_factory_endpoint>
+                      HARNESS_ACCT: <+account.identifier>
+                      HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                      ENTITY_ID: <+workspace.identifier.replace(" ","-").replace("-","_").toLowerCase()>
+                      HSF_PROPERTY: metadata.hsf.is_drifted
+                      HSF_Value: false
+                      ORG_ID: <+org.identifier>
+                      PROJECT_ID: <+project.identifier>
+              %{~ endif ~}
+        tags: {}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+        when:
+          pipelineStatus: Success
+  variables:
+    - name: REGISTRY_CONNECTOR_ID
+      type: String
+      description: Existing Registry Connector used to retrieve container images.
+      required: true
+      value: ${DOCKER_REGISTRY_ID}
+    - name: HARNESS_IDP_RESOURCE_MANAGER_IMAGE
+      type: String
+      description: Harness IDP Resource Manager for managing IDP Resources
+      required: true
+      value: ${HSF_IDP_RESOURCE_MGR_IMAGE}
+    - name: HARNESS_PLATFORM_KEY
+      type: Secret
+      description: ""
+      required: true
+      value: ${HARNESS_PLATFORM_KEY}

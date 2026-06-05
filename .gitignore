@@ -45,6 +45,7 @@ rendered/.keep
 **/*backend.tf
 
 **/*providers.tf
+!pilot-light/providers.tf
 
 # Don't commit MacOS finder files
 **/.DS_Store

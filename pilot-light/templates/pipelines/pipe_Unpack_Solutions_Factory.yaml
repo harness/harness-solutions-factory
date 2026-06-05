@@ -1,0 +1,387 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Deploy Solutions Factory
+        identifier: Deploy_Solutions_Factory
+        description: ""
+        type: IACM
+        spec:
+          workspace: harness_solutions_factory
+${IACM_STAGE_INFRASTRUCTURE}
+          execution:
+            steps:
+              - stepGroup:
+                  name: Deploy Factory
+                  identifier: Deploy_Factory
+                  steps:
+                    - step:
+                        type: IACMOpenTofuPlugin
+                        name: init
+                        identifier: init
+                        timeout: 10m
+                        spec:
+                          command: init
+                    - step:
+                        type: IACMOpenTofuPlugin
+                        name: plan
+                        identifier: plan
+                        timeout: 10m
+                        spec:
+                          command: plan
+                    - step:
+                        type: IACMOpenTofuPlugin
+                        name: apply
+                        identifier: apply
+                        timeout: 10m
+                        spec:
+                          command: apply
+              %{~ if USE_HARNESS_IDP != "skipped" ~}
+              - stepGroup:
+                  name: Find and Register Custom IDP Catalog Templates
+                  identifier: custom_catalog_management
+                  steps:
+                    - step:
+                        type: GitClone
+                        name: Clone Repository
+                        identifier: Clone_Repository
+                        spec:
+                          connectorRef: <+variable.account.custom_template_library_connector>
+                          repoName: <+variable.account.custom_template_library_repo>
+                          cloneDirectory: /harness/custom_catalog
+                          depth: 1
+                          build:
+                            type: branch
+                            spec:
+                              branch: main
+                    - step:
+                        type: Plugin
+                        name: Register IDP Entities
+                        identifier: Register_IDP_Entities
+                        spec:
+                          connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                          image: <+pipeline.variables.HARNESS_IDP_RESOURCE_MANAGER_IMAGE>
+                          settings:
+                            HARNESS_URI: <+pipeline.variables.HARNESS_ENDPOINT>
+                            HARNESS_ACCT: <+account.identifier>
+                            HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                            WORKING_DIR: <+stepGroup.steps.Clone_Repository.spec.cloneDirectory>
+                            REPO_BRANCH: main
+                            REGISTRATION_FILE: idp_registration_mgr.yaml
+                            ENTITY_TYPE: workflow
+                            SWITCH: main
+                    - step:
+                        type: Run
+                        name: Register Layouts and Scorecards
+                        identifier: Register_Layouts_and_Scorecards
+                        spec:
+                          connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                          image: <+pipeline.variables.HARNESS_IDP_RESOURCE_MANAGER_IMAGE>
+                          shell: Python
+                          command: |-
+                            #!/bin/python
+                            from os import environ
+                            from harness_open_api.rest import ApiException as RestApiException
+                            from harness_idp_resource_manager.configuration import Config, ApiException
+                            import yaml
+                            import json
+
+
+                            config = Config()
+                            logger = config.return_logging_instance(__name__)
+
+                            def call_api(resource_path, method, payload=None):
+                                (response_body, response_status, response_headers) = config.client.call_api(resource_path, method, body=payload, response_type=object, auth_settings = ['x-api-key'])
+                                if not response_status in [200, 201]:
+                                    raise ApiException(f"Failed: {response_status} - {response_body}")
+                                return response_body
+
+
+                            check_files = [e for e in environ.get("PLUGIN_CHECK_FILES", "").split(",") if e]
+                            if not check_files:
+                                logger.info("No check Files provided. The Environment Variable 'PLUGIN_CHECK_FILES' is required to add checks")
+                            for check_file in check_files:
+                                resource_path="/gateway/v1/checks"
+                                resource_method="POST"
+                                try:
+                                    with open("/".join([config.workdir, check_file]),"r") as stream:
+                                        payload = yaml.safe_load(stream)
+                                except FileNotFoundError as err:
+                                    if environ.get("PLUGIN_IGNORE_MISSING", "false") == "true":
+                                      continue
+                                    raise ApiException(f"The file {check_file} is missing or could not be loaded")
+                                check_id = payload["check_details"]["identifier"]
+                                check_name = payload["check_details"]["name"]
+                                logger.info("Create or Update the check - %s", check_name)
+                                try:
+                                    logger.debug("Validate if %s exists", check_name)
+                                    # Smoke test, if this doesn't return an error, then the check exists
+                                    call_api("/".join([resource_path,"?".join([check_id,"custom=true"])]), "GET")
+                                    logger.debug("Confirmation that %s exists", check_name)
+                                    resource_method="PUT"
+                                    resource_path="/".join([
+                                        resource_path,
+                                        "?".join([
+                                            check_id,
+                                            "=".join(["account", config.account_number])])
+                                        ])
+                                except RestApiException as api_err:
+                                    error_msg=json.loads(api_err.body.decode())
+                                    if error_msg["message"].startswith("Check details not found for checkId"):
+                                        logger.debug("Confirmation that %s does not exist", check_name)
+                                    else:
+                                        logger.error("API Issue")
+                                        raise Exception from api_err
+                                except Exception as err:
+                                    raise Exception from err
+                                call_api(resource_path, resource_method, payload)
+
+
+
+                            layout_files = [e for e in environ.get("PLUGIN_LAYOUT_FILES", "").split(",") if e]
+                            if not layout_files:
+                                logger.info("No Layout Files provided. The Environment Variable 'PLUGIN_LAYOUT_FILES' is required to add layouts")
+                            for layout_file in layout_files:
+                                resource_path="/gateway/v1/layout"
+                                resource_method="POST"
+                                try:
+                                    with open("/".join([config.workdir, layout_file]),"r") as stream:
+                                        payload = yaml.safe_load(stream)
+                                        payload["yaml"]=yaml.dump(payload["yaml"])
+                                        logger.info("Create or Update the layout - %s", payload["name"])
+                                        call_api(resource_path, resource_method, payload)
+                                except FileNotFoundError as err:
+                                    if environ.get("PLUGIN_IGNORE_MISSING", "false") == "true":
+                                      continue
+                                    raise ApiException(f"The file {layout_file} is missing or could not be loaded")
+
+
+                            scorecard_files = [e for e in environ.get("PLUGIN_SCORECARD_FILES", "").split(",") if e]
+                            if not scorecard_files:
+                                logger.info("No Scorecard Files provided. The Environment Variable 'PLUGIN_SCORECARD_FILES' is required to add scorecards")
+                            for scorecard_file in scorecard_files:
+                                resource_path="/gateway/v1/scorecards"
+                                resource_method="POST"
+                                try:
+                                    with open("/".join([config.workdir, scorecard_file]),"r") as stream:
+                                        payload = yaml.safe_load(stream)
+                                        this_id = payload.get("scorecard",{}).get("identifier", None)
+                                        if not this_id:
+                                            raise ApiException(f"Scorecard {scorecard_file} improperly formatted")
+                                        try:
+                                            scorecard_exists = call_api("/".join([resource_path,this_id]), "GET")
+                                        except:
+                                            scorecard_exists = None
+                                        if not scorecard_exists:
+                                            logger.info("Creating the scorecard - %s", this_id)
+                                            call_api(resource_path, resource_method, payload)
+                                        else:
+                                            logger.info("Updating the scorecard - %s", this_id)
+                                            call_api("/".join([resource_path,this_id]), "PUT", payload)
+                                except FileNotFoundError as err:
+                                    if environ.get("PLUGIN_IGNORE_MISSING", "false") == "true":
+                                      continue
+                                    raise ApiException(f"The file {layout_file} is missing or could not be loaded")
+                          envVariables:
+                            PLUGIN_HARNESS_URI: <+pipeline.variables.HARNESS_ENDPOINT>
+                            PLUGIN_HARNESS_ACCT: <+account.identifier>
+                            PLUGIN_HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                            PLUGIN_WORKING_DIR: <+stepGroup.steps.Clone_Repository.spec.cloneDirectory>
+                            PLUGIN_CHECK_FILES: idp_resource_templates/default_hsf_idp_workspace_health_checks.yaml
+                            PLUGIN_LAYOUT_FILES: idp_resource_templates/default_hsf_idp_workspace_layout.yaml
+                            PLUGIN_SCORECARD_FILES: idp_resource_templates/default_hsf_idp_workspace_scorecard.yaml
+                            PLUGIN_IGNORE_MISSING: true
+              %{~ endif ~}
+              - step:
+                  type: Plugin
+                  name: Rotate Token
+                  identifier: Rotate_Token
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_ROTATE_TOKEN_PLUGIN>
+                    settings:
+                      SWITCH: rotate
+                      HARNESS_URI: <+pipeline.variables.HARNESS_ENDPOINT>
+                      HARNESS_ACCT: <+account.identifier>
+                      HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                      API_KEY_TYPE: SERVICE_ACCOUNT
+                      PARENT_ID: harness_platform_manager
+                      API_KEY_ID: platform_manager
+                      NEW_TOKEN_REFERENCE: auto_token_firsttime
+                      SECRET_ID: hsf_platform_api_key
+                      SECRET_ORG_ID: <+variable.account.solutions_factory_org>
+                      UPDATE_SELF: true
+        tags: {}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+    - stage:
+        name: Cleanup
+        identifier: Cleanup
+        description: ""
+        %{~ if USE_HARNESS_IDP != "skipped" ~}
+        type: IDP
+        spec:
+${IDP_STAGE_INFRASTRUCTURE}
+        %{~ else ~}
+        type: IACM
+        spec:
+          workspace: ${HSF_CORE_MANAGER}
+${IACM_STAGE_INFRASTRUCTURE}
+        %{~ endif ~}
+          execution:
+            steps:
+        %{~ if USE_HARNESS_IDP == "skipped" ~}
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: init
+                  identifier: init
+                  timeout: 10m
+                  spec:
+                    command: init
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: plan
+                  identifier: plan
+                  timeout: 10m
+                  spec:
+                    command: plan
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: apply
+                  identifier: apply
+                  timeout: 10m
+                  spec:
+                    command: apply
+        %{~ endif ~}
+              - step:
+                  type: Run
+                  name: Delete_Me
+                  identifier: Delete_Me
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_SCRIPT_MANAGER_IMAGE>
+                    shell: Python
+                    command: |-
+                      #!/bin/python
+                      from os import environ
+                      from sys import exit as sys_exit
+                      import harness_open_api.configuration as Config
+                      import harness_open_api.api.pipelines_api as PIPEAPI
+                      configuration = Config.Configuration()
+                      configuration.host = environ['HARNESS_URI']
+                      configuration.api_key['x-api-key'] = environ['HARNESS_PLATFORM_API_KEY']
+                      client=PIPEAPI.ApiClient(configuration)
+                      pipe_mgr=PIPEAPI.PipelinesApi(client)
+
+                      def setup():
+                          account_number = environ.get("HARNESS_ACCT",None)
+                          if account_number is None:
+                              print("ERROR: The environment variable 'HARNESS_ACCT' is required")
+                              raise Exception("Missing Environment Variables")
+                          hierarchy = {"harness_account": account_number}
+                          org_id = environ.get("ORG_ID",None)
+                          prj_id = environ.get("PROJECT_ID",None)
+                          if prj_id is None and org_id is None:
+                              print("ERROR: Both the ORG_ID and PROJECT_ID must be provided")
+                              raise Exception("Missing Environment Variables")
+                          elif prj_id is None and org_id is not None:
+                              print("ERROR: Both the ORG_ID and PROJECT_ID must be provided")
+                              raise Exception("Missing Environment Variables")
+                          elif prj_id is not None and org_id is None:
+                              print("ERROR: Both the ORG_ID and PROJECT_ID must be provided")
+                              raise Exception("Missing Environment Variables")
+                          else:
+                              hierarchy["org"] = org_id
+                              hierarchy["project"] = prj_id
+                          if environ.get("PIPELINE_ID", None) is None:
+                              print("ERROR: The environment variable 'PIPELINE_ID' is required")
+                              raise Exception("Missing Environment Variables")
+                          hierarchy["pipeline_identifiers"] = [environ['PIPELINE_ID']]
+                          return hierarchy
+
+                      def main():
+                          payload = setup()
+
+                          print("Checking if the Pipeline exists")
+                          pipelines = pipe_mgr.list_pipelines(**payload)
+                          del payload["pipeline_identifiers"]
+
+                          for pipeline in pipelines:
+                              payload["pipeline"] = pipeline.identifier
+                              print(f"Removing the Pipeline {pipeline.identifier}")
+                              pipe_mgr.delete_pipeline(**payload)
+
+                          outputs=[
+                              f"PIPELINES={",".join([e.identifier for e in pipelines])}"
+                          ]
+                          output_file = environ.get('DRONE_OUTPUT')
+                          with open(output_file, 'w', encoding="utf-8") as file:
+                              for elem in outputs:
+                                  file.write(f"{elem}\n")
+
+                      if __name__ == "__main__":
+                          main()
+                    envVariables:
+                      HARNESS_URI: <+pipeline.variables.HARNESS_ENDPOINT>
+                      HARNESS_ACCT: <+pipeline.variables.HARNESS_ACCOUNT_ID>
+                      HARNESS_PLATFORM_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                      ORG_ID: <+org.identifier>
+                      PROJECT_ID: <+project.identifier>
+                      PIPELINE_ID: <+pipeline.identifier>
+        tags: {}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+  variables:
+    - name: HARNESS_ACCOUNT_ID
+      type: String
+      description: When checking for the latest delegate version, this pipeline will connect to the account id provided. Defaults to this account
+      required: true
+      value: <+account.identifier>
+    - name: HARNESS_ENDPOINT
+      type: String
+      description: When checking for the latest delegate version, this pipeline will connect to the endpoint provided. If using a vanity url, then the value should match.
+      required: true
+      value: <+variable.account.solutions_factory_endpoint>
+    - name: HARNESS_PLATFORM_KEY
+      type: Secret
+      description: When checking for the latest delegate version, this pipeline will need to authenticate to the account to verify the current versions. Provide an existing Harness Secret with a valid API Token.
+      required: true
+      value: ${HSF_PLATFORM_KEY}
+    - name: REGISTRY_CONNECTOR_ID
+      type: String
+      description: Existing Registry Connector used to retrieve container images.
+      required: true
+      value: org.hsf_dockerhub_connector
+    - name: HARNESS_SCRIPT_MANAGER_IMAGE
+      type: String
+      description: Harness Script Manager for running Python API SDK
+      required: true
+      value: ${HSF_SCRIPT_MGR_IMAGE}
+    - name: HARNESS_IDP_RESOURCE_MANAGER_IMAGE
+      type: String
+      description: Harness IDP Resource Manager for managing IDP Resources
+      required: true
+      value: ${HSF_IDP_MGR_IMAGE}
+    - name: HARNESS_ROTATE_TOKEN_PLUGIN
+      type: String
+      description: Harness Solutions Factory Rotate Token Plugin
+      required: true
+      value: ${HSF_ROTATE_TOKEN_IMAGE}

@@ -1,0 +1,7 @@
+---
+permissions: [
+  "core_inputset_edit",
+  "core_inputset_view",
+  "core_pipeline_view",
+  "core_pipeline_execute",
+]

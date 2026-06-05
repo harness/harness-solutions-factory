@@ -1,0 +1,328 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Manage Workspaces
+        identifier: Manage_Workspaces
+        description: ""
+        %{~ if USE_HARNESS_IDP != "skipped" ~}
+        type: IDP
+        spec:
+${IDP_STAGE_INFRASTRUCTURE}
+        %{~ else ~}
+        type: IACM
+        spec:
+          workspace: ${HSF_CORE_MANAGER}
+${IACM_STAGE_INFRASTRUCTURE}
+        %{~ endif ~}
+          execution:
+            steps:
+              %{~ if USE_HARNESS_IDP != "skipped" ~}
+              - step:
+                  type: GitClone
+                  name: Clone Repository
+                  identifier: Clone_Repository
+                  spec:
+                    connectorRef: ${HTL_REPOSITORY_CONNECTOR}
+                    repoName: ${HTL_REPOSITORY_NAME}
+                    cloneDirectory: /harness/catalog
+                    depth: 1
+                    build:
+                      type: ${HTL_REPOSITORY_TYPE}
+                      spec:
+                        ${HTL_REPOSITORY_TYPE}: ${HTL_REPOSITORY_BRANCH}
+              %{~ endif ~}
+              - step:
+                  type: Plugin
+                  name: Manage IACM Workspace
+                  identifier: Manage_IACM_Workspace
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_IACM_WORKSPACE_MGR>
+                    settings:
+                      RESOURCE_NAME: <+pipeline.variables.RESOURCE_NAME>
+                      RESOURCE_OWNER: <+pipeline.variables.RESOURCE_OWNER>
+                      RESOURCE_VARS: <+pipeline.variables.RESOURCE_VARS>
+                      RESOURCE_VARS_SECRETS: <+pipeline.variables.RESOURCE_VARS_SECRETS>
+                      RESOURCE_VARS_ENVS: <+pipeline.variables.RESOURCE_VARS_ENVS>
+                      RESOURCE_VARS_ENVS_SECRETS: <+pipeline.variables.RESOURCE_VARS_ENVS_SECRET>
+                      GIT_REPOSITORY_CONNECTOR: <+pipeline.variables.GIT_REPOSITORY_CONNECTOR>
+                      GIT_REPOSITORY_NAME: <+pipeline.variables.GIT_REPOSITORY_NAME>
+                      GIT_REPOSITORY_SOURCE_TYPE: <+pipeline.variables.GIT_REPOSITORY_SOURCE_TYPE>
+                      GIT_REPOSITORY_BRANCH: <+pipeline.variables.GIT_REPOSITORY_BRANCH>
+                      GIT_REPOSITORY_PATH: <+pipeline.variables.GIT_REPOSITORY_PATH>
+                      HARNESS_ACCOUNT_ID: <+account.identifier>
+                      HARNESS_ENDPOINT: <+pipeline.variables.HARNESS_ENDPOINT>
+                      HARNESS_PORTAL_RESOURCES: <+pipeline.variables.HARNESS_PORTAL_RESOURCES>
+                      HARNESS_PLATFORM_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                      HARNESS_ACCT: <+account.identifier>
+                      HARNESS_API_KEY: <+secrets.getValue(<+pipeline.variables.HARNESS_PLATFORM_KEY>)>
+                      IAC_PROVISIONER_TYPE: <+pipeline.variables.IAC_PROVISIONER_TYPE>
+                      IAC_PROVISIONER_VERSION: <+pipeline.variables.IAC_PROVISIONER_VERSION>
+                      IAC_PROVIDER_CONNECTOR: <+pipeline.variables.IAC_PROVIDER_CONNECTOR>
+                      INCLUDE_HARNESS_ENVS: <+pipeline.variables.INCLUDE_HARNESS_ENVS>
+                      WORKSPACE_ORG: <+pipeline.variables.WORKSPACE_ORG>
+                      WORKSPACE_PROJECT: <+pipeline.variables.WORKSPACE_PROJECT>
+                      WORKSPACE_TAGS: <+pipeline.variables.WORKSPACE_TAGS>
+                      API_KEY: <+secrets.getValue(<+pipeline.variables.HARNESS_PLATFORM_KEY>)>
+                      HSF_ENABLED: true
+                      IS_EPHEMERAL: <+pipeline.variables.IS_EPHEMERAL>
+              %{~ if USE_HARNESS_IDP != "skipped" ~}
+              - step:
+                  type: Plugin
+                  name: Register IDP Entities
+                  identifier: Register_IDP_Entities
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_IDP_RESOURCE_MANAGER_IMAGE>
+                    settings:
+                      SWITCH: register
+                      ENTITY_TYPE: resource
+                      HARNESS_URI: <+pipeline.variables.HARNESS_ENDPOINT.replace("/gateway","")>
+                      HARNESS_ACCT: <+account.identifier>
+                      HARNESS_API_KEY: <+secrets.getValue(<+pipeline.variables.HARNESS_PLATFORM_KEY>)>
+                      WORKING_DIR: <+execution.steps.Clone_Repository.spec.cloneDirectory>
+                      ENTITY_TEMPLATE: idp_resource_templates/default_hsf_workspace_resource.yaml.j2
+                      ENTITY_PAYLOAD: '{"resource_name": "<+pipeline.variables.RESOURCE_NAME_IDP>", "is_resource_drifted": "true", "workspace_uri": "<+<+pipeline.variables.HARNESS_ENDPOINT>.replace("/gateway","")>/ng/account/<+account.identifier>/module/iacm/orgs/<+pipeline.variables.WORKSPACE_ORG>/projects/<+pipeline.variables.WORKSPACE_PROJECT>/workspaces/<+pipeline.variables.RESOURCE_NAME>"}'
+                      ORG_ID: <+pipeline.variables.WORKSPACE_ORG>
+                      PROJECT_ID: <+pipeline.variables.WORKSPACE_PROJECT>
+              %{~ endif ~}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+    - stage:
+        name: Provision
+        identifier: Provision
+        description: ""
+        type: IACM
+        spec:
+${IACM_STAGE_INFRASTRUCTURE}
+          workspace: <+pipeline.variables.RESOURCE_NAME>
+          execution:
+            steps:
+              - stepGroup:
+                  name: Workspace Preparation
+                  identifier: Preparation
+                  steps:
+                    - step:
+                        type: IACMOpenTofuPlugin
+                        name: init
+                        identifier: init
+                        timeout: 10m
+                        spec:
+                          command: init
+                          %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                          image: ${KUBERNETES_IMAGE_NAME}
+                          %{~ endif ~}
+                    - step:
+                        type: IACMOpenTofuPlugin
+                        name: plan
+                        identifier: plan
+                        timeout: 10m
+                        spec:
+                          command: plan
+                          %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                          image: ${KUBERNETES_IMAGE_NAME}
+                          %{~ endif ~}
+              - stepGroup:
+                  name: Workspace Provision
+                  identifier: Provision
+                  steps:
+                    - step:
+                        type: IACMOpenTofuPlugin
+                        name: apply
+                        identifier: apply
+                        timeout: 1h
+                        spec:
+                          command: apply
+                          %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                          image: ${KUBERNETES_IMAGE_NAME}
+                          %{~ endif ~}
+                    %{~ if USE_HARNESS_IDP != "skipped" ~}
+                    - step:
+                        type: Plugin
+                        name: Update Workspace In IDP
+                        identifier: Update_Workspace_In_IDP
+                        spec:
+                          connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                          image: <+pipeline.variables.HARNESS_IDP_RESOURCE_MANAGER_IMAGE>
+                          settings:
+                            SWITCH: property
+                            ENTITY_TYPE: resource
+                            HARNESS_URI: <+variable.account.solutions_factory_endpoint>
+                            HARNESS_ACCT: <+account.identifier>
+                            HARNESS_API_KEY: <+secrets.getValue(<+pipeline.variables.HARNESS_PLATFORM_KEY>)>
+                            ENTITY_ID: <+pipeline.variables.RESOURCE_NAME_IDP>
+                            HSF_PROPERTY: metadata.hsf.is_drifted
+                            HSF_Value: false
+                            ORG_ID: <+org.identifier>
+                            PROJECT_ID: <+project.identifier>
+                    %{~ endif ~}
+        tags: {}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+        when:
+          pipelineStatus: Success
+  variables:
+    - name: Organization_ID
+      type: String
+      description: Enter the Harness Organization into which this Factory Floor should be deployed
+      required: true
+      value: <+input>.default(${ORGANIZATION_ID})
+    - name: Project_ID
+      type: String
+      description: Enter the Harness Project within the chosen Organization into which this Factory Floor should be deployed
+      required: true
+      value: <+input>
+    - name: Deployment_Type
+      type: String
+      description: Enter the Factory Floor Type which should be deployed. Note - Mini-Factory will create the project and add the Factory Floor, while the Factory-Floor will be applied against an existing project.
+      required: true
+      value: <+input>.default(factory-floor).selectOneFrom(mini-factory,factory-floor)
+    - name: RESOURCE_NAME
+      type: String
+      description: Enter the IACM Workspace name to create or update
+      required: true
+      value: "<+<+pipeline.variables.Deployment_Type>==\"mini-factory\" ?\"<+pipeline.variables.Project_ID>_mini_factory\" : \"<+pipeline.variables.Organization_ID>_<+pipeline.variables.Project_ID>_factory_floor\">"
+    - name: RESOURCE_NAME_IDP
+      type: String
+      description: Enter the IACM Workspace name to create or update
+      required: true
+      value: <+<+pipeline.variables.RESOURCE_NAME>.replace(" ","-").replace("-","_").toLowerCase()>
+    - name: RESOURCE_OWNER
+      type: String
+      description: Enter the IDP group or user to whom to assign ownership
+      required: true
+      value: group:default/HSF_Admins
+    - name: RESOURCE_VARS
+      type: String
+      description: Provide a JSON object of Key:Value pairs of standard Terraform variables
+      required: false
+      value: "{\"organization_id\" : \"<+pipeline.variables.Organization_ID>\",\"project_id\" : \"<+pipeline.variables.Project_ID>\"}"
+    - name: RESOURCE_VARS_SECRETS
+      type: String
+      description: Provide a JSON object of Key:Value pairs of standard Terraform variables with Harness Secret References
+      required: false
+      value: "{}"
+    - name: RESOURCE_VARS_ENVS
+      type: String
+      description: Provide a JSON object of Key:Value pairs of standard Environment variables
+      required: false
+      value: "{}"
+    - name: RESOURCE_VARS_ENVS_SECRET
+      type: String
+      description: Provide a JSON object of Key:Value pairs of standard Environment variables with Harness Secret References
+      required: false
+      value: "{}"
+    - name: GIT_REPOSITORY_CONNECTOR
+      type: String
+      description: ""
+      required: true
+      value: ${GIT_REPOSITORY_CONNECTOR}
+    - name: GIT_REPOSITORY_NAME
+      type: String
+      description: ""
+      required: true
+      value: ${GIT_REPOSITORY_NAME}
+    - name: GIT_REPOSITORY_SOURCE_TYPE
+      type: String
+      description: ""
+      required: true
+      value: ${GIT_REPOSITORY_SOURCE_TYPE}
+    - name: GIT_REPOSITORY_BRANCH
+      type: String
+      description: ""
+      required: true
+      value: ${GIT_REPOSITORY_BRANCH}
+    - name: GIT_REPOSITORY_PATH
+      type: String
+      description: ""
+      required: false
+      value: <+pipeline.variables.Deployment_Type>
+    - name: HARNESS_ACCOUNT_ID
+      type: String
+      description: ""
+      required: true
+      value: <+account.identifier>
+    - name: HARNESS_ENDPOINT
+      type: String
+      description: ""
+      required: true
+      value: <+variable.org.HARNESS_ENDPOINT>
+    - name: HARNESS_PORTAL_RESOURCES
+      type: String
+      description: ""
+      required: true
+      value: <+variable.org.HARNESS_PORTAL_RESOURCES>
+    - name: HARNESS_PLATFORM_KEY
+      type: String
+      description: ""
+      required: true
+      value: ${HARNESS_PLATFORM_API_KEY}
+    - name: IAC_PROVISIONER_TYPE
+      type: String
+      description: ""
+      required: false
+      value: ${IAC_PROVISIONER_TYPE}
+    - name: IAC_PROVISIONER_VERSION
+      type: String
+      description: ""
+      required: false
+      value: ${IAC_PROVISIONER_VERSION}
+    - name: IAC_PROVIDER_CONNECTOR
+      type: String
+      description: ""
+      required: false
+      value: ""
+    - name: INCLUDE_HARNESS_ENVS
+      type: String
+      description: ""
+      required: false
+      value: "true"
+    - name: WORKSPACE_ORG
+      type: String
+      description: ""
+      required: false
+      value: ${WORKSPACE_ORG}
+    - name: WORKSPACE_PROJECT
+      type: String
+      description: ""
+      required: false
+      value: ${WORKSPACE_PROJECT}
+    - name: WORKSPACE_TAGS
+      type: String
+      description: ""
+      required: false
+      value: "{\"source\":\"hsf_component\",\"type\":\"<+pipeline.variables.Deployment_Type>\"}"
+    - name: REGISTRY_CONNECTOR_ID
+      type: String
+      description: Existing Registry Connector used to retrieve container images.
+      required: true
+      value: ${DOCKER_REGISTRY_ID}
+    - name: HARNESS_IACM_WORKSPACE_MGR
+      type: String
+      description: Harness Script Manager for running Python API SDK
+      required: true
+      value: ${HSF_IACM_WORKSPACE_MGR_IMAGE}
+    - name: HARNESS_IDP_RESOURCE_MANAGER_IMAGE
+      type: String
+      description: Harness IDP Resource Manager for managing IDP Resources
+      required: true
+      value: ${HSF_IDP_RESOURCE_MGR_IMAGE}

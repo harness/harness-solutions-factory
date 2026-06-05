@@ -1,0 +1,164 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Teardown Workspace
+        identifier: Teardown_Workspace
+        description: ""
+        type: IACM
+        spec:
+          workspace: <+input>
+${IACM_STAGE_INFRASTRUCTURE}
+          execution:
+            steps:
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: init
+                  identifier: init
+                  timeout: 10m
+                  spec:
+                    command: init
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: Plan Destroy
+                  identifier: Plan_Destroy
+                  timeout: 10m
+                  spec:
+                    command: plan-destroy
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              - step:
+                  type: IACMApproval
+                  name: Approve Deletion
+                  identifier: Approve_Deletion
+                  spec:
+                    autoApprove: true
+                  timeout: 24h
+              - step:
+                  type: IACMOpenTofuPlugin
+                  name: Destroy Workspace
+                  identifier: Destroy_Workspace
+                  timeout: 10m
+                  spec:
+                    command: destroy
+                    %{~ if KUBERNETES_IMAGE_NAME != "skipped" ~}
+                    image: ${KUBERNETES_IMAGE_NAME}
+                    %{~ endif ~}
+              - step:
+                  type: Run
+                  name: Generate Outputs from Workspace Variables
+                  identifier: Generate_Outputs_from_Workspace_Variables
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_IDP_RESOURCE_MANAGER_IMAGE>
+                    shell: Sh
+                    command: |-
+                      workspace_identifier=<+workspace.identifier>
+                      workspace_identifier_idp=<+workspace.identifier.replace(" ","-").replace("-","_").toLowerCase()>
+                    outputVariables:
+                      - name: workspace_identifier
+                        type: String
+                        value: workspace_identifier
+                      - name: workspace_identifier_idp
+                        type: String
+                        value: workspace_identifier_idp
+        tags: {}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+        when:
+          pipelineStatus: Success
+    - stage:
+        name: Remove Workspace Details
+        identifier: Remove_Workspace_Details
+        description: ""
+        %{~ if USE_HARNESS_IDP != "skipped" ~}
+        type: IDP
+        spec:
+${IDP_STAGE_INFRASTRUCTURE}
+        %{~ else ~}
+        type: IACM
+        spec:
+          workspace: ${HSF_CORE_MANAGER}
+${IACM_STAGE_INFRASTRUCTURE}
+        %{~ endif ~}
+          execution:
+            steps:
+              %{~ if USE_HARNESS_IDP != "skipped" ~}
+              - step:
+                  type: Plugin
+                  name: Unregister IDP Entity
+                  identifier: Unregister_IDP_Entity
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_IDP_RESOURCE_MANAGER_IMAGE>
+                    settings:
+                      SWITCH: remove
+                      ENTITY_TYPE: resource
+                      HARNESS_URI: <+variable.account.solutions_factory_endpoint>
+                      HARNESS_ACCT: <+account.identifier>
+                      HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                      ENTITY_ID: <+pipeline.stages.Teardown_Workspace.spec.execution.steps.Generate_Outputs_from_Workspace_Variables.output.outputVariables.workspace_identifier_idp>
+                      ORG_ID: <+org.identifier>
+                      PROJECT_ID: <+project.identifier>
+              %{~ endif ~}
+              - step:
+                  type: Plugin
+                  name: Delete IACM Workspace
+                  identifier: Delete_IACM_Workspace
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_IACM_WORKSPACE_MGR>
+                    settings:
+                      SWITCH: remove
+                      HARNESS_URI: <+variable.account.solutions_factory_endpoint>
+                      HARNESS_ACCT: <+account.identifier>
+                      HARNESS_API_KEY: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+                      RESOURCE_NAME: <+pipeline.stages.Teardown_Workspace.spec.execution.steps.Generate_Outputs_from_Workspace_Variables.output.outputVariables.workspace_identifier>
+                      WORKSPACE_ORG: <+org.identifier>
+                      WORKSPACE_PROJECT: <+project.identifier>
+        tags: {}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+  variables:
+    - name: REGISTRY_CONNECTOR_ID
+      type: String
+      description: Existing Registry Connector used to retrieve container images.
+      required: true
+      value: ${DOCKER_REGISTRY_ID}
+    - name: HARNESS_IDP_RESOURCE_MANAGER_IMAGE
+      type: String
+      description: Harness IDP Resource Manager for managing IDP Resources
+      required: true
+      value: ${HSF_IDP_RESOURCE_MGR_IMAGE}
+    - name: HARNESS_IACM_WORKSPACE_MGR
+      type: String
+      description: Harness Script Manager for running Python API SDK
+      required: true
+      value: ${HSF_IACM_WORKSPACE_MGR_IMAGE}
+    - name: HARNESS_PLATFORM_KEY
+      type: Secret
+      description: ""
+      required: true
+      value: ${HARNESS_PLATFORM_KEY}
