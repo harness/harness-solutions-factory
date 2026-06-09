@@ -6,7 +6,7 @@ terraform {
     password = "${HARNESS_APIKEY}"
     lock_address = "${WORKSPACE}/terraform-backend/lock?accountIdentifier=${HARNESS_ACCOUNT}"
     lock_method = "POST"
-    unlock_address = "${WORKSPACE}/terraform-backend/lock?accountIdentifier=$HARNESS_ACCOUNT"
+    unlock_address = "${WORKSPACE}/terraform-backend/lock?accountIdentifier=${HARNESS_ACCOUNT}"
     unlock_method = "DELETE"
   }
 }
