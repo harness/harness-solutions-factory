@@ -198,6 +198,7 @@ ${IACM_STAGE_INFRASTRUCTURE}
                             PLUGIN_SCORECARD_FILES: idp_resource_templates/default_hsf_idp_workspace_scorecard.yaml
                             PLUGIN_IGNORE_MISSING: true
               %{~ endif ~}
+              %{~ if HSF_ROTATE_TOKEN_IMAGE != "skipped" ~}
               - step:
                   type: Plugin
                   name: Rotate Token
@@ -217,6 +218,7 @@ ${IACM_STAGE_INFRASTRUCTURE}
                       SECRET_ID: hsf_platform_api_key
                       SECRET_ORG_ID: <+variable.account.solutions_factory_org>
                       UPDATE_SELF: true
+              %{~ endif ~}
         tags: {}
         %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
         variables:
@@ -369,7 +371,7 @@ ${IACM_STAGE_INFRASTRUCTURE}
       type: String
       description: Existing Registry Connector used to retrieve container images.
       required: true
-      value: org.hsf_dockerhub_connector
+      value: ${DOCKER_REGISTRY_ID}
     - name: HARNESS_SCRIPT_MANAGER_IMAGE
       type: String
       description: Harness Script Manager for running Python API SDK
@@ -380,8 +382,10 @@ ${IACM_STAGE_INFRASTRUCTURE}
       description: Harness IDP Resource Manager for managing IDP Resources
       required: true
       value: ${HSF_IDP_MGR_IMAGE}
+    %{~ if HSF_ROTATE_TOKEN_IMAGE != "skipped" ~}
     - name: HARNESS_ROTATE_TOKEN_PLUGIN
       type: String
       description: Harness Solutions Factory Rotate Token Plugin
       required: true
       value: ${HSF_ROTATE_TOKEN_IMAGE}
+    %{~ endif ~}

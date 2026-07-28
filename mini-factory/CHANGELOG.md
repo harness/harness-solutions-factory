@@ -2,6 +2,18 @@
 
 All notable changes to the Harness Solutions Factory Mini Factory module are documented in this file.
 
+## v2.5.1
+
+### Changed
+- Updated Harness provider version requirement from >= 0.31 to >= 0.41
+- Updated time provider version from ~> 0.9.1 to ~> 0.14.0
+- Added explicit Terraform version requirement (>= 1.10.0, < 2.0.0)
+- Changed project name format from raw project ID to human-readable format with spaces
+- Fixed Factory Floor module source path from ../factory_floor to ../factory-floor
+
+### Removed
+- Removed legacy Makefile build configuration file
+
 ## v2.5.0
 
 ### Added

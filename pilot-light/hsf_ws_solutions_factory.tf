@@ -122,34 +122,14 @@ resource "harness_platform_workspace" "solutions_factory" {
     }
   }
 
-  terraform_variable {
-    key        = "hsf_pipeline_connector_ref"
-    value      = var.hsf_pipeline_connector_ref
-    value_type = "string"
-  }
+  dynamic "terraform_variable" {
+    for_each = local.hsf_plugin_workspace_variables
 
-  terraform_variable {
-    key        = "hsf_script_mgr_image"
-    value      = var.hsf_script_mgr_image
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_iacm_manager_plugin"
-    value      = var.hsf_iacm_manager_plugin
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_idp_resource_mgr_image"
-    value      = var.hsf_idp_resource_mgr_image
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_plugin_ssl_verify_x509_strict"
-    value      = var.hsf_plugin_ssl_verify_x509_strict
-    value_type = "string"
+    content {
+      key        = terraform_variable.value.name
+      value      = terraform_variable.value.value
+      value_type = "string"
+    }
   }
 
   terraform_variable {
@@ -201,13 +181,8 @@ resource "harness_platform_workspace" "solutions_factory" {
   }
 
   environment_variable {
-    key        = "TF_VAR_harness_platform_key"
-    value      = local.account_management_key
-    value_type = "secret"
-  }
-  environment_variable {
     key        = "PLUGIN_HSF_ENABLED"
-    value      = "true"
+    value      = true
     value_type = "string"
   }
 

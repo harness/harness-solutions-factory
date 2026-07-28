@@ -88,6 +88,16 @@ resource "harness_platform_workspace" "pilot_light" {
     }
   }
 
+  dynamic "terraform_variable" {
+    for_each = local.hsf_plugin_workspace_variables
+
+    content {
+      key        = terraform_variable.value.name
+      value      = terraform_variable.value.value
+      value_type = "string"
+    }
+  }
+
   terraform_variable {
     key        = "should_rotate_on_schedule"
     value      = var.should_rotate_on_schedule
@@ -103,42 +113,6 @@ resource "harness_platform_workspace" "pilot_light" {
   terraform_variable {
     key        = "initial_admin_user"
     value      = var.initial_admin_user
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_iacm_manager_plugin"
-    value      = var.hsf_iacm_manager_plugin
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_mirror_repos_plugin"
-    value      = var.hsf_mirror_repos_plugin
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_pipeline_connector_ref"
-    value      = var.hsf_pipeline_connector_ref
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_plugin_ssl_verify_x509_strict"
-    value      = var.hsf_plugin_ssl_verify_x509_strict
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_rotate_token_plugin"
-    value      = var.hsf_rotate_token_plugin
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_script_mgr_image"
-    value      = var.hsf_script_mgr_image
     value_type = "string"
   }
 
@@ -231,13 +205,6 @@ resource "harness_platform_pipeline" "pilot_light" {
         "${path.module}/templates/pipelines/snippets/iacm_infrastructure.yaml",
         local.k8s_setup
       )
-
-      HCR_REPO_IDS : "harness-solutions-factory,harness-template-library"
-      HCR_RULE_ID : "harness_solutions_factory_codeowners"
-      HSF_PLATFORM_KEY : local.account_management_key
-      DOCKER_REGISTRY_ID : var.hsf_pipeline_connector_ref
-      HSF_SCRIPT_MGR_IMAGE : var.hsf_script_mgr_image
-      HSF_PLUGIN_SSL_VERIFY_X509_STRICT : (var.hsf_plugin_ssl_verify_x509_strict ? "true" : "false")
 
       TAGS : yamlencode(merge(local.common_tags, { pipeline_type : "hsf" }))
     }

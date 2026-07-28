@@ -143,18 +143,6 @@ variable "hsf_script_mgr_image" {
   default     = null
 }
 
-variable "hsf_mirror_repos_plugin" {
-  type        = string
-  description = "HSF Mirror Images plugin (relative to hsf_pipeline_connector_ref)"
-  default     = null
-}
-
-variable "hsf_rotate_token_plugin" {
-  type        = string
-  description = "HSF Rotate Token plugin (relative to hsf_pipeline_connector_ref)"
-  default     = null
-}
-
 variable "hsf_iacm_manager_plugin" {
   type        = string
   description = "HSF IACM Workspace Manager plugin (relative to hsf_pipeline_connector_ref)"
@@ -164,6 +152,12 @@ variable "hsf_iacm_manager_plugin" {
 variable "hsf_idp_resource_mgr_image" {
   type        = string
   description = "HSF IDP Resource Manager image (relative to hsf_pipeline_connector_ref)"
+  default     = null
+}
+
+variable "hsf_rotate_token_plugin" {
+  type        = string
+  description = "HSF Token Rotation plugin image (relative to hsf_pipeline_connector_ref)"
   default     = null
 }
 

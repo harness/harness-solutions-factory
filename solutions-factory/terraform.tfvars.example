@@ -1,40 +1,22 @@
 #######
-# Harness Account Connection
+# Harness Account Setup
 #######
-# Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+# The Harness Platform URL (defaults to Harness SaaS)
 harness_platform_url = "https://app.harness.io/gateway"
 
-# Enter the Harness Platform Account Number
-harness_platform_account = # Required
+# The Harness Platform Account Number (falls back to HARNESS_ACCOUNT_ID env var)
+harness_platform_account = null
 
-# Enter the Harness Platform API Key for your account
-harness_platform_key  = # Required
+# The Harness organization ID (must exist before execution)
+organization_id = "Harness_Platform_Management"
 
-#######
-# Custom Configuration and Feature Flags
-#######
-
-# Store Generated Backend configuration file when running locally
-# Note:
-# **NOTE**: This option should only be used when performing an initial setup of HSF Pilot Light from a local development workstation.
-store_backend = false
-
-# Enable creating local Harness Code repository for custom configurations
-should_setup_custom_tpl = false
-
-# Enable unpacking the Solutions Factory deployment
-should_unpack = false
-
-# Enable Harness IDP for the Solutions Factory
-should_use_harness_idp = true
-
-# Email address of primary HSF admin user
-initial_admin_user = # Required
+# The Harness project ID for Solutions Factory
+project_id = "Solutions_Factory"
 
 #######
 # SCM Source Configurations and Settings
 #######
-# SCM connector reference for IACM workspaces (use 'skipped' for official repositories; prefix account/org connectors with 'account.' or 'org.' as needed)
+# Existing Harness SCM connector reference. Use 'skipped' for the default official repositories connector. Prefix account/org connectors with 'account.' or 'org.' as needed
 hsf_source_connector = "skipped"
 
 # SCM repository for IACM workspaces (defaults to official Harness Solutions Factory repository)
@@ -44,7 +26,25 @@ hsf_source_repository = "harness-solutions-factory"
 hsf_source_fetch_type = "tag"
 
 # SCM source reference (branch name, tag, or commit SHA) for IACM workspaces
-hsf_source_branch = "v2.5.0"
+hsf_source_branch = "v2.5.1"
+
+# Reference to existing Harness Platform API key (secret reference)
+existing_harness_platform_key_ref = # Required
+
+#######
+# Harness Template Library Source Code Manager configuration
+#######
+# Git connector reference for template library deployment. Use 'skipped' to default to account variable custom_template_library_connector
+git_connector_ref = "skipped"
+
+# Git repository name for template library. Use 'skipped' to default to account variable custom_template_library_repo
+git_repository_name = "skipped"
+
+# Git fetch type: 'branch', 'tag', 'sha', or 'skipped' (uses account default)
+git_repository_fetch_type = "skipped"
+
+# Git source reference (branch name, tag, or commit SHA). Use 'skipped' to default to account variable custom_template_library_fetch_key
+git_repository_branch = "skipped"
 
 #######
 # Kubernetes Configurations and Settings
@@ -70,23 +70,20 @@ kubernetes_override_image_connector = "skipped"
 # Custom container image for provisioner (terraform/opentofu binary). Path relative to kubernetes_override_image_connector
 kubernetes_override_image_name = "skipped"
 
-#######
-# Provisioner Type and Version
-#######
 # Default provisioner type: 'terraform' or 'opentofu'
 provisioner_type = "opentofu"
 
 # Default provisioner version for all deployments
-provisioner_version = "1.10.0"
+provisioner_version = "1.12.3"
 
-#######
-# HSF Master Service Account rotation configuration
-#######
-# Enable scheduled rotation of Solutions Factory service account tokens
-should_rotate_on_schedule = true
+# Enable Mini-Factory for distributed IDP workflow execution
+enable_hsf_mini_factory = false
 
-# Cron schedule for token rotation (default: every Sunday at 03:00 UTC)
-rotation_schedule = "0 3 * * 0"
+# Enable Harness IDP for the Solutions Factory
+should_use_harness_idp = true
+
+# Deploy the HSF Hub for centralized workspace management
+should_use_hsf_hub = false
 
 #######
 # HSF Plugin Configurations and Settings
@@ -95,19 +92,16 @@ rotation_schedule = "0 3 * * 0"
 hsf_pipeline_connector_ref = "org.hsf_dockerhub_connector"
 
 # HSF Script Manager image (relative to hsf_pipeline_connector_ref)
-hsf_script_mgr_image = "harnesssolutionfactory/harness-python-api-sdk:v1.13.0"
-
-# HSF Mirror Repositories plugin image (relative to hsf_pipeline_connector_ref)
-hsf_mirror_repos_plugin = "harnesssolutionfactory/harness-cr-mirror-repositories:v1.2.1"
+hsf_script_mgr_image = "harnesssolutionfactory/harness-python-api-sdk:v1.14.0"
 
 # HSF Token Rotation plugin image (relative to hsf_pipeline_connector_ref)
-hsf_rotate_token_plugin = "harnesssolutionfactory/harness-token-rotation:v1.2.3"
+hsf_rotate_token_plugin = "harnesssolutionfactory/harness-token-rotation:v1.2.4"
 
 # HSF IACM Workspace Manager plugin image (relative to hsf_pipeline_connector_ref)
-hsf_iacm_manager_plugin = "harnesssolutionfactory/harness-manage-iacm-workspace:v1.7.6"
+hsf_iacm_manager_plugin = "harnesssolutionfactory/harness-manage-iacm-workspace:v1.7.7"
 
 # HSF IDP Resource Manager image (relative to hsf_pipeline_connector_ref)
-hsf_idp_resource_mgr_image = "harnesssolutionfactory/harness-idp-resource-manager:v1.3.5"
+hsf_idp_resource_mgr_image = "harnesssolutionfactory/harness-idp-resource-manager:v1.3.6"
 
 # Enforce strict SSL RFC5280 compliance for HSF plugins
 hsf_plugin_ssl_verify_x509_strict = true

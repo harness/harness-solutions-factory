@@ -1,9 +1,9 @@
 // Pipeline identifiers for factory-floor operations
 
 // Bulk workspace management pipeline ID
-output "bulk_managment_pipeline_id" {
+output "bulk_management_pipeline_id" {
   description = "Pipeline for bulk workspace management operations"
-  value       = module.factory_floor.bulk_managment_pipeline_id
+  value       = module.factory_floor.bulk_management_pipeline_id
 }
 
 // Create and manage workspaces pipeline ID

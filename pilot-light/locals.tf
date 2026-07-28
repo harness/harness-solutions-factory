@@ -76,7 +76,14 @@ locals {
   harness_template_library_fetch_key  = "main"
 
   // Account management API key secret reference
-  account_management_key = "org.${harness_platform_secret_text.harness_platform_key.id}"
+  should_create_service_account = var.existing_harness_platform_key_ref == "skipped" ? true : false
+  account_management_key = (
+    var.existing_harness_platform_key_ref == "skipped"
+    ?
+    "org.${harness_platform_secret_text.harness_platform_key.0.id}"
+    :
+    var.existing_harness_platform_key_ref
+  )
 
   // Kubernetes configuration parameters (conditionally set based on connector existence)
   use_k8s = (
@@ -136,4 +143,28 @@ locals {
     )
     KUBERNETES_IMAGE_CONNECTOR : var.kubernetes_override_image_connector
   }
+
+  should_create_docker_connector = (
+    var.hsf_pipeline_connector_ref == "skipped"
+    ?
+    1
+    :
+    0
+  )
+  hsf_pipeline_connector_ref = (
+    var.hsf_pipeline_connector_ref != "skipped"
+    ?
+    var.hsf_pipeline_connector_ref
+    :
+    "org.${harness_platform_connector_docker.hsf.0.id}"
+  )
+
+  hsf_plugin_workspace_variables = [
+    { name = "hsf_pipeline_connector_ref", value = local.hsf_pipeline_connector_ref },
+    { name = "hsf_script_mgr_image", value = var.hsf_script_mgr_image },
+    { name = "hsf_rotate_token_plugin", value = var.hsf_rotate_token_plugin },
+    { name = "hsf_iacm_manager_plugin", value = var.hsf_iacm_manager_plugin },
+    { name = "hsf_idp_resource_mgr_image", value = var.hsf_idp_resource_mgr_image },
+    { name = "hsf_plugin_ssl_verify_x509_strict", value = var.hsf_plugin_ssl_verify_x509_strict },
+  ]
 }

@@ -42,12 +42,16 @@ variable "project_description" {
 }
 
 // Content Library Configuration
+// Note: This variable is not leveraged in the Terraform code but is used by the deployment pipeline
+// and therefore, we have added the variable to enable configuring the value in the workspace configuration.
 variable "content_library_connector" {
   type        = string
   description = "SCM connector for content library (required by deployment pipelines)"
   default     = null
 }
 
+// Note: This variable is not leveraged in the Terraform code but is used by the deployment pipeline
+// and therefore, we have added the variable to enable configuring the value in the workspace configuration.
 variable "content_library_repo" {
   type        = string
   description = "Repository containing content library (required by deployment pipelines)"
@@ -62,7 +66,7 @@ variable "content_library_branch" {
 
 variable "content_library" {
   type        = string
-  description = "Absolute path to content library root directory"
+  description = "Absolute path to content library root directory. This path should exist and contain a local copy of your Harness Template Library."
   default     = "/harness/content-library"
 }
 

@@ -36,20 +36,12 @@ resource "harness_platform_pipeline" "unpack_solutions_factory" {
       )
 
       # Docker Image Registry Details
-      DOCKER_REGISTRY_ID : var.hsf_pipeline_connector_ref
+      DOCKER_REGISTRY_ID : local.hsf_pipeline_connector_ref
       HSF_SCRIPT_MGR_IMAGE : var.hsf_script_mgr_image
       HSF_IACM_MGR_IMAGE : var.hsf_iacm_manager_plugin
       HSF_IDP_MGR_IMAGE : var.hsf_idp_resource_mgr_image
-      # HSF_MIRROR_REPOS_PLUGIN : var.hsf_mirror_repos_plugin
-      HSF_ROTATE_TOKEN_IMAGE : var.hsf_rotate_token_plugin
+      HSF_ROTATE_TOKEN_IMAGE : local.should_create_service_account ? var.hsf_rotate_token_plugin : "skipped"
       HSF_PLUGIN_SSL_VERIFY_X509_STRICT : (var.hsf_plugin_ssl_verify_x509_strict ? "true" : "false")
-      # HSF_SOURCE_REPO_URL : local.harness_solutions_factory_repo
-      # HSF_TARGET_REPO_URL : module.harness_code_repository_hsf.0.repository.repo_url
-      # SOURCE_BRANCH : "main"
-      # TPL_SOURCE_REPO_URL : local.harness_template_library_repo
-      # TPL_TARGET_REPO_URL : module.harness_code_repository_tpl.0.repository.repo_url
-      # CTL_TARGET_REPO_URL : module.harness_code_repository_hsf_custom.0.repository.repo_url
-      # TARGET_REPO_TOKEN : local.account_management_key
 
       USE_HARNESS_IDP : var.should_use_harness_idp ? "true" : "skipped"
       HSF_CORE_MANAGER : local.hsf_core_mgr_workspace

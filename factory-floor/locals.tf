@@ -28,11 +28,13 @@ locals {
   )
 
   // Gather Terraform variables from Solutions Factory workspace as defaults
-  solutions_factory_defaults = flatten([{
+  solutions_factory_ws_defaults = flatten([{
     for elem in data.harness_platform_workspace.solutions_factory.terraform_variable :
     (elem.key) => (elem.value)
     }
-  ])[0]
+  ])
+
+  solutions_factory_defaults = length(local.solutions_factory_ws_defaults) > 0 ? local.solutions_factory_ws_defaults[0] : {}
 
   // Merge provided variables with defaults from Solutions Factory workspace
   factory_floor_variables = {
@@ -101,7 +103,7 @@ locals {
     )
 
     kubernetes_node_selectors : (
-      var.kubernetes_node_selectors != {}
+      var.kubernetes_node_selectors == {}
       ?
       jsondecode(lookup(local.solutions_factory_defaults, "kubernetes_node_selectors", jsonencode(var.kubernetes_node_selectors)))
       :
@@ -172,12 +174,27 @@ locals {
       var.hsf_iacm_manager_plugin
     )
 
+    hsf_rotate_token_plugin : (
+      var.hsf_rotate_token_plugin == null
+      ?
+      lookup(local.solutions_factory_defaults, "hsf_rotate_token_plugin", var.hsf_rotate_token_plugin)
+      :
+      var.hsf_rotate_token_plugin
+    )
+    hsf_iacm_manager_plugin : (
+      var.hsf_iacm_manager_plugin == null
+      ?
+      lookup(local.solutions_factory_defaults, "hsf_iacm_manager_plugin", var.hsf_iacm_manager_plugin)
+      :
+      var.hsf_iacm_manager_plugin
+    )
+
     hsf_plugin_ssl_verify_x509_strict : (
       var.hsf_plugin_ssl_verify_x509_strict == null
       ?
       lookup(local.solutions_factory_defaults, "hsf_plugin_ssl_verify_x509_strict", var.hsf_plugin_ssl_verify_x509_strict)
       :
-      true
+      var.hsf_plugin_ssl_verify_x509_strict
     )
 
     should_use_harness_idp : (
@@ -185,7 +202,7 @@ locals {
       ?
       lookup(local.solutions_factory_defaults, "should_use_harness_idp", var.should_use_harness_idp)
       :
-      true
+      var.should_use_harness_idp
     )
 
   }

@@ -54,12 +54,14 @@ locals {
   )
 
   // Extract Solutions Factory workspace variables for HSF defaults
-  solutions_factory_defaults = flatten([{
+  solutions_factory_ws_defaults = flatten([{
     for elem in data.harness_platform_workspace.solutions_factory.terraform_variable :
     (elem.key) => (elem.value)
     }
-  ])[0]
+  ])
+
+  solutions_factory_defaults = length(local.solutions_factory_ws_defaults) > 0 ? local.solutions_factory_ws_defaults[0] : {}
 
   // Check if Harness IDP should be used (from Solutions Factory defaults)
-  should_use_harness_idp = lookup(local.solutions_factory_defaults, "should_use_harness_idp", "true")
+  should_use_harness_idp = lookup(local.solutions_factory_defaults, "should_use_harness_idp", true)
 }

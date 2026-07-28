@@ -44,16 +44,21 @@ terraform apply
 
 ## Providers
 
-This module requires the [Harness Provider](https://registry.terraform.io/providers/harness/harness/latest/docs) (version >= 0.24). Required credentials must be provided via Terraform variables or environment variables (`HARNESS_ACCOUNT_ID`, `HARNESS_PLATFORM_API_KEY`).
+This module requires the [Harness Provider](https://registry.terraform.io/providers/harness/harness/latest/docs) (version >= 0.41). Required credentials must be provided via Terraform variables or environment variables (`HARNESS_ACCOUNT_ID`, `HARNESS_PLATFORM_API_KEY`).
 
 ### Required Provider Configuration
 
 ```hcl
 terraform {
+  required_version = ">= 1.10.0, < 2.0.0"
   required_providers {
     harness = {
       source  = "harness/harness"
-      version = ">= 0.24"
+      version = ">= 0.41"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.14.0"
     }
   }
 }
@@ -126,16 +131,17 @@ Pass credentials via `terraform.tfvars` or environment variables:
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | `provisioner_type` | Tool: `terraform` or `opentofu` | string | `opentofu` |
-| `provisioner_version` | Provisioner version | string | `1.10.0` |
+| `provisioner_version` | Provisioner version | string | `1.12.3` |
 
 ### HSF Plugins and Features
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | `hsf_pipeline_connector_ref` | Connector for HSF plugin images | string | `org.hsf_dockerhub_connector` |
-| `hsf_script_mgr_image` | Script Manager image path | string | `harnesssolutionfactory/harness-python-api-sdk:latest` |
-| `hsf_idp_resource_mgr_image` | IDP Resource Manager image | string | `harnesssolutionfactory/harness-idp-resource-manager:latest` |
-| `hsf_iacm_manager_plugin` | IACM Workspace Manager plugin image | string | `harnesssolutionfactory/harness-manage-iacm-workspace:latest` |
+| `hsf_script_mgr_image` | Script Manager image path | string | `harnesssolutionfactory/harness-python-api-sdk:v1.14.0` |
+| `hsf_rotate_token_plugin` | Token Rotation plugin image | string | `harnesssolutionfactory/harness-token-rotation:v1.2.4` |
+| `hsf_iacm_manager_plugin` | IACM Workspace Manager plugin image | string | `harnesssolutionfactory/harness-manage-iacm-workspace:v1.7.7` |
+| `hsf_idp_resource_mgr_image` | IDP Resource Manager image | string | `harnesssolutionfactory/harness-idp-resource-manager:v1.3.6` |
 | `hsf_plugin_ssl_verify_x509_strict` | Enforce strict SSL/X.509 validation | bool | `true` |
 | `enable_hsf_mini_factory` | Enable Mini Factory configuration | bool | `false` |
 | `should_use_harness_idp` | Enable Harness IDP integration | bool | `true` |
@@ -148,14 +154,6 @@ Copy `terraform.tfvars.example` to `terraform.tfvars` and update the required va
 ## Outputs
 
 After successful `apply`, the Solutions Factory is ready for workspace management operations. All core pipelines and infrastructure are deployed and accessible through the Harness platform.
-
-## Contributing
-
-A complete [Contributors Guide](../CONTRIBUTING.md) can be found in this repository
-
-## Authors
-
-Module is maintained by Harness, Inc
 
 ## Contributing
 

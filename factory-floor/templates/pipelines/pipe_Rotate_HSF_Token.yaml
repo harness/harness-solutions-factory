@@ -1,0 +1,128 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Rotate HSF Token
+        identifier: Rotate_HSF_Token
+        description: ""
+        %{~ if USE_HARNESS_IDP != "skipped" ~}
+        type: IDP
+        spec:
+${IDP_STAGE_INFRASTRUCTURE}
+        %{~ else ~}
+        type: IACM
+        spec:
+          workspace: ${HSF_CORE_MANAGER}
+${IACM_STAGE_INFRASTRUCTURE}
+        %{~ endif ~}
+          execution:
+            steps:
+              - step:
+                  type: Plugin
+                  name: Rotate Token
+                  identifier: Rotate_Token
+                  spec:
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: <+pipeline.variables.HARNESS_ROTATE_TOKEN_PLUGIN>
+                    settings:
+                      SWITCH: rotate
+                      HARNESS_URI: <+pipeline.variables.hsf_account_url>
+                      HARNESS_ACCT: <+pipeline.variables.hsf_account>
+                      HARNESS_API_KEY: <+pipeline.variables.hsf_platform_key>
+                      API_KEY_TYPE: <+pipeline.variables.token_owner_type>
+                      PARENT_ID: <+pipeline.variables.token_owner_ref>
+                      API_KEY_ID: <+pipeline.variables.token_api_key_ref>
+                      NEW_TOKEN_REFERENCE: auto_token_<+pipeline.sequenceId>
+                      TOKEN_ORG_ID: <+pipeline.variables.token_org_id>
+                      TOKEN_PROJECT_ID: <+pipeline.variables.token_project_id>
+                      SECRET_ID: <+pipeline.variables.secret_id>
+                      SECRET_ORG_ID: <+pipeline.variables.secret_org_id>
+                      SECRET_PROJECT_ID: <+pipeline.variables.secret_project_id>
+                      UPDATE_SELF: <+pipeline.variables.update_self>
+          cloneCodebase: false
+        tags: {}
+        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
+        variables:
+          - name: SSL_VERIFY_X509_STRICT
+            type: String
+            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
+            required: false
+            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
+        %{~ endif ~}
+  variables:
+    - name: REGISTRY_CONNECTOR_ID
+      type: String
+      description: Existing Registry Connector used to retrieve container images.
+      required: true
+      value: ${DOCKER_REGISTRY_ID}
+    - name: HARNESS_ROTATE_TOKEN_PLUGIN
+      type: String
+      description: Harness Solutions Factory Rotate Token Plugin
+      required: true
+      value: ${HSF_ROTATE_TOKEN_IMAGE}
+    - name: hsf_account_url
+      type: String
+      description: ""
+      required: true
+      value: <+variable.account.solutions_factory_endpoint>
+    - name: hsf_account
+      type: String
+      description: ""
+      required: true
+      value: <+account.identifier>
+    - name: hsf_platform_key
+      type: Secret
+      description: ""
+      required: true
+      value: ${API_KEY_REF}
+    - name: token_owner_type
+      type: String
+      description: API key type - SERVICE_ACCOUNT or USER
+      required: true
+      value: <+input>.default(SERVICE_ACCOUNT).selectOneFrom(SERVICE_ACCOUNT,USER)
+    - name: token_owner_ref
+      type: String
+      description: Parent RBAC identifier (service account or user identifier)
+      required: true
+      value: <+input>
+    - name: token_api_key_ref
+      type: String
+      description: API Key identifier under the service account
+      required: true
+      value: <+input>
+    - name: token_org_id
+      type: String
+      description: Organization ID containing the token
+      required: false
+      value: <+input>
+    - name: token_project_id
+      type: String
+      description: Project ID containing the token
+      required: false
+      value: <+input>
+    - name: secret_id
+      type: String
+      description: Secret ID to update with new token
+      required: true
+      value: <+input>
+    - name: secret_org_id
+      type: String
+      description: Organization ID containing the secret
+      required: false
+      value: <+input>
+    - name: secret_project_id
+      type: String
+      description: Project ID containing the secret
+      required: false
+      value: <+input>
+    - name: update_self
+      type: String
+      description: Should the new token be used once the rotation is complete to then delete old token. Requires 'core_secret_edit' and 'core_serviceaccount_manageapikey' permissions on the token.
+      required: false
+      value: <+input>.default(false).selectOneFrom(true, false)

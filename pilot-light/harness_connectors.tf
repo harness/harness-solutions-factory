@@ -1,5 +1,6 @@
 // DockerHub connector for pulling HSF plugin images in pipelines
 resource "harness_platform_connector_docker" "hsf" {
+  count = local.should_create_docker_connector
   lifecycle {
     ignore_changes = [
       execute_on_delegate,

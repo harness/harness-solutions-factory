@@ -19,13 +19,5 @@
 tags:
   purpose: HSF Admins
 role_bindings:
-# List of Key/Value pairs containing a single element per RoleBinding to include.
-# The creation of UserGroups occurs after the creation of Roles and Resource
-# Groups. When using a policy created by this template, the identifier must match
-# the following criteria to be found and valid:
-# - Hyphens and spaces are converted into underscores
-#
-# role (String) Registered Harness Role identifier at this scope
-# resource_group (String) Registered Harness Resource Group identifier at this scope
   - role: _project_admin
     resource_group: _all_project_level_resources

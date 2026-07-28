@@ -1,5 +1,6 @@
 // Terraform configuration with required provider versions
 terraform {
+  required_version = ">= 1.10.0, < 2.0.0"
   required_providers {
     // Harness provider for platform resource management
     harness = {
@@ -9,7 +10,7 @@ terraform {
     // Time provider for managing delays and waits
     time = {
       source  = "hashicorp/time"
-      version = "~> 0.9.1"
+      version = "~> 0.14.0"
     }
   }
 }

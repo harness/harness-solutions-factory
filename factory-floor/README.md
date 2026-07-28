@@ -10,9 +10,10 @@ This template creates:
 
 - Project roles: `Shared_Resource_Access` and `HSF_IACM_Executor`
 - Resource groups and policies for workspace execution control
-- Operational pipelines: Create and Manage Workspaces, Provision, Plan and Validate, Drift Analysis, and Teardown
+- Operational pipelines: Create and Manage Workspaces, Provision, Plan and Validate, Drift Analysis, Teardown, and Rotate Harness Service Account Token
 - Bulk workspace management capabilities with tag-based filtering
 - IDP integration for automated drift state tracking (optional)
+- Automated API token rotation and secret management
 
 ## Quick Start
 
@@ -140,7 +141,6 @@ Alternatively, set environment variables:
 | --- | --- | --- | --- |
 | `hsf_pipeline_connector_ref` | Connector for HSF plugin images | string | `null` |
 | `hsf_script_mgr_image` | Script Manager image path | string | `null` |
-| `hsf_mirror_repos_plugin` | Repository Mirror plugin image | string | `null` |
 | `hsf_rotate_token_plugin` | Token Rotation plugin image | string | `null` |
 | `hsf_iacm_manager_plugin` | IACM Workspace Manager plugin image | string | `null` |
 | `hsf_idp_resource_mgr_image` | IDP Resource Manager image | string | `null` |
@@ -156,20 +156,12 @@ Copy `terraform.tfvars.example` to `terraform.tfvars` and update the required va
 
 | Output Name | Description |
 | --- | --- |
-| bulk_managment_pipeline_id | Identifier for the Bulk IACM Workspace Management pipeline |
+| bulk_management_pipeline_id | Identifier for the Bulk IACM Workspace Management pipeline |
 | create_manage_pipeline_id | Identifier for the Create and Manage Workspace pipeline |
 | drift_analysis_pipeline_id | Identifier for the Drift Analysis pipeline |
 | plan_validate_pipeline_id | Identifier for the Plan and Validate pipeline |
 | provision_workspace_pipeline_id | Identifier for the Infrastructure Provisioning pipeline |
 | teardown_workspace_pipeline_id | Identifier for the Infrastructure Teardown pipeline |
-
-## Contributing
-
-A complete [Contributors Guide](../CONTRIBUTING.md) can be found in this repository
-
-## Authors
-
-Module is maintained by Harness, Inc
 
 ## Contributing
 

@@ -4,8 +4,8 @@ import future.keywords.if
 import future.keywords.in
 
 ###############################################################################
-# Important Note: Each restricted pipeline would need to be declared by identifier
-# along with workspaces not allowed to be run.
+# Important Note: Each restricted workspace would need to be declared by identifier
+# along with tags allowed to be run.
 ###############################################################################
 
 restricted_workspaces = [

@@ -1,4 +1,4 @@
-# Harness Solutions Factory v2
+# Harness Solutions Factory
 
 **Harness Solutions Factory (HSF)** is a scalable automation framework designed to help organizations rapidly deploy and manage Harness resources through self-service workflows, governance, and best practices, all out of the box. Whether you're enabling new teams, setting up golden templates, or driving adoption of Harness at scale, HSF provides a repeatable, governed foundation to help you get started faster and stay standardized across your organization.
 
@@ -41,8 +41,8 @@ The fastest way to get started:
 
 ```bash
 # 1. Clone and navigate to Pilot Light
-git clone https://github.com/harness/harness-solutions-factory-v2.git
-cd harness-solutions-factory-v2/pilot-light
+git clone https://github.com/harness/harness-solutions-factory.git
+cd harness-solutions-factory/pilot-light
 
 # 2. Configure your credentials
 cp terraform.tfvars.example terraform.tfvars
@@ -60,7 +60,7 @@ After Pilot Light completes, follow the output instructions to proceed with subs
 ## Repository Structure
 
 ```
-harness-solutions-factory-v2/
+harness-solutions-factory/
 ├── README.md                    # This file - overview and navigation
 ├── pilot-light/                 # Foundation module (start here)
 ├── solutions-factory/           # Core workspace management

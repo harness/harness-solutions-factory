@@ -58,7 +58,7 @@ resource "harness_platform_workspace" "hsf_core_mgr" {
 
   environment_variable {
     key        = "PLUGIN_HSF_ENABLED"
-    value      = "true"
+    value      = true
     value_type = "string"
   }
 
@@ -72,7 +72,6 @@ resource "harness_platform_workspace" "hsf_core_mgr" {
     ignore_changes = [
       provisioner_type,
       provisioner_version,
-      provider_connector,
       repository_connector,
       repository_branch,
       repository

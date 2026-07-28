@@ -113,10 +113,10 @@ resource "harness_platform_usergroup" "usergroup" {
     for group in local.groups : group.identifier => group
   }
 
-  identifier = each.value.identifier
-  name       = each.value.name
-  org_id     = data.harness_platform_organization.selected.id
-  project_id = data.harness_platform_project.selected.id
+  identifier  = each.value.identifier
+  name        = each.value.name
+  org_id      = data.harness_platform_organization.selected.id
+  project_id  = data.harness_platform_project.selected.id
   description = lookup(each.value, "description", "Harness UserGroup managed by Solutions Factory")
   user_emails = []
 

@@ -23,6 +23,15 @@ variable "store_backend" {
 }
 
 // Custom Configuration and Feature Flags
+variable "existing_harness_platform_key_ref" {
+  type        = string
+  description = <<-EOH
+    Reference to existing Harness Platform API key (secret reference). If not provided, then a new account-level account
+    will be created and the token stored as a secret in the Harness Secrets manager as `org.hsf_platform_api_key`
+  EOH
+  default     = "skipped"
+}
+
 variable "should_setup_custom_tpl" {
   type        = bool
   description = "Enable creating local Harness Code repository for custom configurations"
@@ -73,7 +82,7 @@ variable "hsf_source_fetch_type" {
 variable "hsf_source_branch" {
   type        = string
   description = "SCM source reference (branch name, tag, or commit SHA) for IACM workspaces"
-  default     = "v2.5.0"
+  default     = "v2.5.1"
 }
 
 // Kubernetes Configurations for Pipeline Execution
@@ -144,7 +153,7 @@ variable "provisioner_type" {
 variable "provisioner_version" {
   type        = string
   description = "Default provisioner version for all deployments"
-  default     = "1.10.0"
+  default     = "1.12.3"
 }
 
 // HSF Master Service Account Token Rotation
@@ -163,38 +172,32 @@ variable "rotation_schedule" {
 // HSF Plugin Configurations
 variable "hsf_pipeline_connector_ref" {
   type        = string
-  description = "Container registry connector for HSF pipeline images (defaults to org.hsf_dockerhub_connector)"
-  default     = "org.hsf_dockerhub_connector"
+  description = "Container registry connector for HSF pipeline images (defaults to skipped)"
+  default     = "skipped"
 }
 
 variable "hsf_script_mgr_image" {
   type        = string
   description = "HSF Script Manager image (relative to hsf_pipeline_connector_ref)"
-  default     = "harnesssolutionfactory/harness-python-api-sdk:v1.13.0"
-}
-
-variable "hsf_mirror_repos_plugin" {
-  type        = string
-  description = "HSF Mirror Repositories plugin image (relative to hsf_pipeline_connector_ref)"
-  default     = "harnesssolutionfactory/harness-cr-mirror-repositories:v1.2.1"
+  default     = "harnesssolutionfactory/harness-python-api-sdk:v1.14.0"
 }
 
 variable "hsf_rotate_token_plugin" {
   type        = string
   description = "HSF Token Rotation plugin image (relative to hsf_pipeline_connector_ref)"
-  default     = "harnesssolutionfactory/harness-token-rotation:v1.2.3"
+  default     = "harnesssolutionfactory/harness-token-rotation:v1.2.4"
 }
 
 variable "hsf_iacm_manager_plugin" {
   type        = string
   description = "HSF IACM Workspace Manager plugin image (relative to hsf_pipeline_connector_ref)"
-  default     = "harnesssolutionfactory/harness-manage-iacm-workspace:v1.7.6"
+  default     = "harnesssolutionfactory/harness-manage-iacm-workspace:v1.7.7"
 }
 
 variable "hsf_idp_resource_mgr_image" {
   type        = string
   description = "HSF IDP Resource Manager image (relative to hsf_pipeline_connector_ref)"
-  default     = "harnesssolutionfactory/harness-idp-resource-manager:v1.3.5"
+  default     = "harnesssolutionfactory/harness-idp-resource-manager:v1.3.6"
 }
 
 variable "hsf_plugin_ssl_verify_x509_strict" {

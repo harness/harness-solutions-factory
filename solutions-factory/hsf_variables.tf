@@ -31,7 +31,6 @@ resource "harness_platform_variables" "enable_hsf_mini_factory" {
   identifier  = "enable_hsf_mini_factory"
   name        = "Should HSF Mini-Factory configuration be leveraged"
   type        = "String"
-  org_id      = data.harness_platform_organization.selected.id
   description = "Enable mini-factory distribution for IDP workflows"
   spec {
     value_type  = "FIXED"

@@ -32,6 +32,7 @@ resource "harness_platform_usergroup" "hsf_admins" {
 # Configure organization-level permissions for the HSF Admins group that will be granted
 # full admin access to manage and update the HSF installation
 resource "harness_platform_role_assignments" "hsf_admins" {
+  identifier                = "hsf_admins"
   org_id                    = harness_platform_organization.factories.id
   resource_group_identifier = "_all_resources_including_child_scopes"
   role_identifier           = "_organization_admin"
@@ -110,6 +111,7 @@ resource "harness_platform_role_assignments" "hsf_users" {
       harness_platform_roles.shared_resource_access.identifier
     ] : "hsf_users_${role}" => role
   }
+  identifier                = each.key
   org_id                    = harness_platform_organization.factories.id
   resource_group_identifier = "_all_organization_level_resources"
   role_identifier           = each.value

@@ -42,7 +42,7 @@ terraform apply
 
 ## Providers
 
-This module requires the [Harness Provider](https://registry.terraform.io/providers/harness/harness/latest/docs) (version >= 0.31). Required credentials must be provided via Terraform variables or environment variables (`HARNESS_ACCOUNT_ID`, `HARNESS_PLATFORM_API_KEY`).
+This module requires the [Harness Provider](https://registry.terraform.io/providers/harness/harness/latest/docs) (version >= 0.41). Required credentials must be provided via Terraform variables or environment variables (`HARNESS_ACCOUNT_ID`, `HARNESS_PLATFORM_API_KEY`).
 
 ### Required Provider Configuration
 
@@ -50,14 +50,15 @@ Included in the parent module is `providers.tf` with the provider declaration:
 
 ```hcl
 terraform {
+  required_version = ">= 1.10.0, < 2.0.0"
   required_providers {
     harness = {
       source  = "harness/harness"
-      version = ">= 0.31"
+      version = ">= 0.41"
     }
     time = {
       source  = "hashicorp/time"
-      version = "~> 0.9.1"
+      version = "~> 0.14.0"
     }
   }
 }

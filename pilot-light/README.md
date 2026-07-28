@@ -20,9 +20,9 @@ Prerequisites: Install [OpenTofu](https://opentofu.org/) or [Terraform](https://
 
 **Note**: ⚠️  Minimum configuration requires your Harness Account Number and an API Key with Account Admin permissions.
 
-**Note**: ⚠️ When running locally to initialize the pilot-light, you will want to configure the `store_backed` variable to push the statefile to the new Harness IACM Workspace.
+**Note**: ⚠️ When running locally to initialize the pilot-light, you will want to configure the `store_backend` variable to push the statefile to the new Harness IACM Workspace.
 
-1. Clone this repository and navigate to the `pilot_light` directory
+1. Clone this repository and navigate to the `pilot-light` directory
 2. Copy `terraform.tfvars.example` to `terraform.tfvars` and update the values
 3. Run the following commands:
 
@@ -54,6 +54,7 @@ Included in this template is `providers.tf` with the provider declaration:
 
 ```hcl
 terraform {
+  required_version = ">= 1.10.0, < 2.0.0"
   required_providers {
     harness = {
       source  = "harness/harness"
@@ -61,7 +62,7 @@ terraform {
     }
     time = {
       source  = "hashicorp/time"
-      version = "~> 0.9.1"
+      version = "~> 0.14.0"
     }
     local = {
       source  = "hashicorp/local"
@@ -110,11 +111,12 @@ _**NOTE**: This option should only be used when performing an initial setup of H
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
+| `existing_harness_platform_key_ref` | Reference to existing Harness Platform API key (secret reference) | string | `skipped` |
 | `store_backend` | Store Generated Backend configuration file when running locally | bool | `false` |
 | `should_setup_custom_tpl` | Enable creating local Harness Code repository for custom configurations | bool | `false` |
 | `should_unpack` | Enable unpacking the Solutions Factory deployment | bool | `false` |
 | `should_use_harness_idp` | Enable Harness IDP for the Solutions Factory | bool | `true` |
-| `initial_admin_user` | Email address of primary HSF admin user (use 'skipped' to defer) | string | "skipped" |
+| `initial_admin_user` | Email address of primary HSF admin user (use 'skipped' to defer) | string | `skipped` |
 
 ### Source Control
 
@@ -142,7 +144,7 @@ _**NOTE**: This option should only be used when performing an initial setup of H
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | `provisioner_type` | Tool: `terraform` or `opentofu` | string | `opentofu` |
-| `provisioner_version` | Provisioner version | string | `1.10.0` |
+| `provisioner_version` | Provisioner version | string | `1.12.3` |
 
 ### Repository and Automation
 
@@ -150,20 +152,16 @@ _**NOTE**: This option should only be used when performing an initial setup of H
 | --- | --- | --- | --- |
 | `should_rotate_on_schedule` | Enable token rotation schedule | bool | `true` |
 | `rotation_schedule` | Cron schedule for token rotation (UTC) | string | `0 3 * * 0` |
-| `should_setup_custom_tpl` | Create custom template library repository | bool | `true` |
-| `should_use_harness_idp` | Enable Harness IDP integration | bool | `true` |
-| `initial_admin_user` | Email of primary HSF admin | string | `skipped` |
 
 ### HSF Plugins
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| `hsf_pipeline_connector_ref` | Connector for HSF plugin images | string | `org.hsf_dockerhub_connector` |
-| `hsf_script_mgr_image` | Script Manager image path | string | `harnesssolutionfactory/harness-python-api-sdk:latest` |
-| `hsf_mirror_repos_plugin` | Repository Mirror plugin image | string | `harnesssolutionfactory/harness-cr-mirror-repositories:latest` |
-| `hsf_rotate_token_plugin` | Token Rotation plugin image | string | `harnesssolutionfactory/harness-token-rotation:latest` |
-| `hsf_iacm_manager_plugin` | IACM Workspace Manager plugin image | string | `harnesssolutionfactory/harness-manage-iacm-workspace:latest` |
-| `hsf_idp_resource_mgr_image` | IDP Resource Manager image | string | `harnesssolutionfactory/harness-idp-resource-manager:latest` |
+| `hsf_pipeline_connector_ref` | Connector for HSF plugin images. If not provided, Org Connecotr for DockerHub will be created `org.hsf_dockerhub_connector` | string | `skipped` |
+| `hsf_script_mgr_image` | Script Manager image path | string | `harnesssolutionfactory/harness-python-api-sdk:v1.14.0` |
+| `hsf_rotate_token_plugin` | Token Rotation plugin image | string | `harnesssolutionfactory/harness-token-rotation:v1.2.4` |
+| `hsf_iacm_manager_plugin` | IACM Workspace Manager plugin image | string | `harnesssolutionfactory/harness-manage-iacm-workspace:v1.7.7` |
+| `hsf_idp_resource_mgr_image` | IDP Resource Manager image | string | `harnesssolutionfactory/harness-idp-resource-manager:v1.3.6` |
 | `hsf_plugin_ssl_verify_x509_strict` | Enforce strict SSL/X.509 validation in plugins | bool | `true` |
 
 **Note**: For `_ref` variables, prefix with `org.` or `account.` depending on scope; project-level connectors need no prefix.

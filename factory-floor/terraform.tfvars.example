@@ -1,76 +1,79 @@
-# Terraform TFVARS Sample
-# ---------
-# Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+// Harness Account Connection
+# The Harness Platform URL (defaults to Harness SaaS)
 harness_platform_url = "https://app.harness.io/gateway"
 
-# Enter the Harness Platform Account Number
-harness_platform_account = null # If Not passed, then the ENV HARNESS_ACCOUNT_ID will be used
+# The Harness Platform Account Number (falls back to HARNESS_ACCOUNT_ID env var)
+harness_platform_account = null
 
-# [Required] Enter the Harness Platform API Key for your account
-harness_platform_key = null # If Not passed, then the ENV HARNESS_PLATFORM_API_KEY will be used
-
-# Provide an organization reference ID.  Must exist before execution
+# The Harness organization ID (must exist before execution)
 organization_id = "Harness_Platform_Management"
 
-# Existing Project Identifier into which the factory floor will be deployed.
+# The Harness project ID where factory-floor will be deployed
 project_id = # Required
 
-# If an existing Harness Platform key should be used, then provide that reference here.
-existing_harness_platform_key_ref = "org.hsf_platform_api_key"
-
-# Enter the Git Repository Connector from which the Terraform code will be deployed
-git_connector_ref = "org.Harness_Template_Library_Repo"
-
-# Enter the Git Repository Name from which the code will be deployed.
-git_repository_name = "official"
-
-# Enter the Git Repository Branch from which the code will be deployed.
-git_repository_branch = "main"
-
-# Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline
-kubernetes_connector = "skipped"
-
-# Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline
-kubernetes_namespace = "default"
-
-# Enter the existing Kubernetes service account to be used when local K8s execution is used
-kubernetes_serviceaccount = "skipped"
-
-# When configured, the runAs user configure the Kubernetes pod to override the default user. Must be a valid Unix-id (as an integer)
-kubernetes_override_run_as_user = "skipped"
-
-# Optional Kubernetes Node Selectors
-kubernetes_node_selectors = {}
-
-# Enter an existing Container Registry connector to use which overrides the default connector
-kubernetes_override_image_connector = "skipped"
-
-# Enter an existing Container image to use which for IACM steps
-kubernetes_override_image_name = "skipped"
-
-# Choose the default type of Provisioner - terraform or opentofu
-provisioner_type = "opentofu"
-
-# Select the Provisioner Version used as the default for all deployments
-provisioner_version = "1.10.0"
-
-# Configures the connector from which the Pipeline Step images will be pulled. Defaults to org.hsf_dockerhub_connector
-hsf_pipeline_connector_ref = "org.hsf_dockerhub_connector"
-
-# Harness Solutions Factory Script Manager Image. Path should be relative to the connector `hsf_pipeline_connector_ref`
-hsf_script_mgr_image = "harnesssolutionfactory/harness-python-api-sdk:latest"
-
-# Harness Solutions Factory IDP Entity Manager Image. Path should be relative to the connector `hsf_pipeline_connector_ref`
-hsf_idp_resource_mgr_image = "harnesssolutionfactory/harness-idp-resource-manager:latest"
-
-# Harness Solutions Factory IACM Workspace Manager Plugin. Path should be relative to the connector `hsf_pipeline_connector_ref`
-hsf_iacm_manager_plugin = "harnesssolutionfactory/harness-manage-iacm-workspace:latest"
-
-# Should Harness IDP be leveraged for the Solutions Factory?
-should_use_harness_idp = true
-
-# Should Harness Core Manage Workspace be created? Only valid if 'should_use_harness_idp' is 'false'
+# Create HSF Core Manager workspace (only valid when should_use_harness_idp is false)
 should_create_hsf_core_mgr_workspace = true
 
-# Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?
-hsf_plugin_ssl_verify_x509_strict = true
+# Enable Harness IDP for the Solutions Factory
+should_use_harness_idp = null
+
+// Factory Floor Master configuration
+# Reference to existing Harness Platform API key (secret reference)
+existing_harness_platform_key_ref = null
+
+# Git connector reference for template library deployment
+git_connector_ref = null
+
+# Git repository name for template library
+git_repository_name = null
+
+# Git source reference (branch name, tag, or commit SHA)
+git_repository_branch = null
+
+// Kubernetes Configurations and Settings
+# Kubernetes connector reference for pipeline execution
+kubernetes_connector = null
+
+# Kubernetes namespace for pipeline execution
+kubernetes_namespace = null
+
+# Kubernetes service account for pipeline execution
+kubernetes_serviceaccount = null
+
+# Kubernetes pod runAs user ID override (must be a valid Unix integer or null)
+kubernetes_override_run_as_user = null
+
+# Kubernetes node selectors for pod scheduling
+kubernetes_node_selectors = {}
+
+# Container registry connector for custom provisioner images
+kubernetes_override_image_connector = null
+
+# Custom container image for provisioner (terraform/opentofu binary). Path relative to kubernetes_override_image_connector
+kubernetes_override_image_name = null
+
+// Provisioner Type and Version
+# Default provisioner type: 'terraform' or 'opentofu'
+provisioner_type = null
+
+# Default provisioner version for all deployments
+provisioner_version = null
+
+// HSF Plugin Configurations and Settings
+# Container registry connector for HSF pipeline images (defaults to org.hsf_dockerhub_connector)
+hsf_pipeline_connector_ref = null
+
+# HSF Script Manager image (relative to hsf_pipeline_connector_ref)
+hsf_script_mgr_image = null
+
+# HSF IACM Workspace Manager plugin (relative to hsf_pipeline_connector_ref)
+hsf_iacm_manager_plugin = null
+
+# HSF IDP Resource Manager image (relative to hsf_pipeline_connector_ref)
+hsf_idp_resource_mgr_image = null
+
+# HSF Token Rotation plugin image (relative to hsf_pipeline_connector_ref)
+hsf_rotate_token_plugin = null
+
+# Enforce strict SSL RFC5280 compliance for HSF plugins
+hsf_plugin_ssl_verify_x509_strict = null

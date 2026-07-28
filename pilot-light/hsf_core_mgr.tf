@@ -13,7 +13,6 @@ resource "harness_platform_workspace" "hsf_core_mgr" {
     ignore_changes = [
       provisioner_type,
       provisioner_version,
-      provider_connector,
       repository_connector,
       repository_branch,
       repository
@@ -39,7 +38,7 @@ resource "harness_platform_workspace" "hsf_core_mgr" {
   repository_commit    = local.harness_solutions_factory_repo_tag
   repository_sha       = local.harness_solutions_factory_repo_sha
   #
-  repository_path         = "hsf_core_mgr"
+  repository_path         = "hsf-core-mgr"
   cost_estimation_enabled = false
   tags                    = ["source:hsf_system", "type:hsf-core-mgr"]
 

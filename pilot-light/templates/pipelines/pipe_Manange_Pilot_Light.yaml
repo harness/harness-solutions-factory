@@ -56,39 +56,5 @@ pipeline:
           workspace: ${WORKSPACE_NAME}
 ${STAGE_INFRASTRUCTURE}
         tags: {}
-        %{~ if HSF_PLUGIN_SSL_VERIFY_X509_STRICT == "false" ~}
-        variables:
-          - name: SSL_VERIFY_X509_STRICT
-            type: String
-            description: "Should the HSF plugins enforce strict adherance to the SSL RFC5280 (Public Key Infrastructure Certificate and Certificate Revocation List) spec?"
-            required: false
-            value: "${HSF_PLUGIN_SSL_VERIFY_X509_STRICT}"
-        %{~ endif ~}
         when:
           pipelineStatus: Success
-  variables:
-    - name: HARNESS_ACCOUNT_ID
-      type: String
-      description: When checking for the latest delegate version, this pipeline will connect to the account id provided. Defaults to this account
-      required: true
-      value: <+account.identifier>
-    - name: HARNESS_ENDPOINT
-      type: String
-      description: When checking for the latest delegate version, this pipeline will connect to the endpoint provided. If using a vanity url, then the value should match.
-      required: true
-      value: <+variable.account.solutions_factory_endpoint>
-    - name: HARNESS_PLATFORM_KEY
-      type: Secret
-      description: When checking for the latest delegate version, this pipeline will need to authenticate to the account to verify the current versions. Provide an existing Harness Secret with a valid API Token.
-      required: true
-      value: ${HSF_PLATFORM_KEY}
-    - name: REGISTRY_CONNECTOR_ID
-      type: String
-      description: Existing Registry Connector used to retrieve container images.
-      required: true
-      value: ${DOCKER_REGISTRY_ID}
-    - name: HARNESS_SCRIPT_MANAGER_IMAGE
-      type: String
-      description: Harness Script Manager for running Python API SDK
-      required: true
-      value: ${HSF_SCRIPT_MGR_IMAGE}

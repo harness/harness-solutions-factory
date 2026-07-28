@@ -124,7 +124,7 @@ ${IACM_STAGE_INFRASTRUCTURE}
                       minimumCount: 1
                       disallowPipelineExecutor: false
                       userGroups:
-                        - account.HSF_Admins
+                        - <+pipeline.variables.APPROVERS_GROUP>
                     isAutoRejectEnabled: false
                     approverInputs: []
         tags: {}
@@ -357,7 +357,7 @@ ${IACM_STAGE_INFRASTRUCTURE}
       type: String
       description: Enter the IDP group or user to whom to assign ownership
       required: true
-      value: <+input>.default("user:account/<+pipeline.triggeredBy.email>")
+      value: <+input>.default(user:account/<+pipeline.triggeredBy.email>)
     - name: RESOURCE_VARS
       type: String
       description: Provide a JSON object of Key:Value pairs of standard Terraform variables
@@ -477,6 +477,11 @@ ${IACM_STAGE_INFRASTRUCTURE}
       description: ""
       required: false
       value: <+input>.default({})
+    - name: APPROVERS_GROUP
+      type: String
+      description: ""
+      required: false
+      value: <+input>.default(account.HSF_Admins)
     - name: REGISTRY_CONNECTOR_ID
       type: String
       description: Existing Registry Connector used to retrieve container images.

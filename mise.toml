@@ -4,7 +4,7 @@
 #
 # Converted from Makefile - Terraform/OpenTofu tasks using Docker
 [tools]
-opentofu = "latest"
+opentofu = "1.12.3"
 terraform-docs = "latest"
 
 [env]
@@ -85,6 +85,13 @@ run = """
   tofu show terraform.tfplan > terraform.tfplan.out
 """
 
+[tasks."plan:output_json"]
+description = "Convers a saved Terraform/Tofu plan and outputs to file"
+dir = "{{cwd}}"
+run = """
+  tofu show -json terraform.tfplan > terraform.tfplan.json
+"""
+
 [tasks.apply]
 description = "Automatically runs a Terraform/Tofu `apply`"
 dir = "{{cwd}}"
@@ -113,7 +120,7 @@ usage = '''
 arg "[resource_name]" help="If provided, then the output resource will be returned"
 '''
 run = """
-  tofu output ${usafe_resource_name?} -var-file=${TERRAFORM_TFVARS:-terraform.tfvars}
+  tofu output ${usage_resource_name?} -var-file=${TERRAFORM_TFVARS:-terraform.tfvars}
 """
 
 [tasks."testing:cleanup"]

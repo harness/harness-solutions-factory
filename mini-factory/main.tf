@@ -6,7 +6,7 @@ data "harness_platform_organization" "selected" {
 // Create Mini-Factory project in the organization
 resource "harness_platform_project" "selected" {
   identifier = var.project_id
-  name       = var.project_id
+  name       = replace(var.project_id, "_", " ")
   org_id     = data.harness_platform_organization.selected.id
   color      = "#73dfe7"
   tags       = local.common_tags_tuple
@@ -14,7 +14,7 @@ resource "harness_platform_project" "selected" {
 
 // Deploy Factory Floor module into Mini-Factory project
 module "factory_floor" {
-  source = "../factory_floor"
+  source = "../factory-floor"
 
   harness_platform_url     = var.harness_platform_url
   harness_platform_account = var.harness_platform_account
