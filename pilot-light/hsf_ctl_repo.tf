@@ -7,7 +7,7 @@ resource "harness_platform_repo" "custom_tpl" {
   default_branch = "main"
 
   source {
-    repo = "harness-solutions-factory/custom-harness-template-library"
+    repo = "harness/harness-template-library"
     type = "github"
   }
 }

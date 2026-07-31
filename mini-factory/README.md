@@ -42,11 +42,16 @@ terraform apply
 
 ## Providers
 
-This module requires the [Harness Provider](https://registry.terraform.io/providers/harness/harness/latest/docs) (version >= 0.41). Required credentials must be provided via Terraform variables or environment variables (`HARNESS_ACCOUNT_ID`, `HARNESS_PLATFORM_API_KEY`).
+This module requires:
+- **Terraform** version >= 1.10.0, < 2.0.0
+- **Harness Provider** (version >= 0.41)
+- **HashiCorp Time Provider** (version ~> 0.14.0)
+
+Required credentials must be provided via Terraform variables or environment variables (`HARNESS_ACCOUNT_ID`, `HARNESS_PLATFORM_API_KEY`).
 
 ### Required Provider Configuration
 
-Included in the parent module is `providers.tf` with the provider declaration:
+Provider configuration is defined in `providers.tf`:
 
 ```hcl
 terraform {
@@ -62,15 +67,11 @@ terraform {
     }
   }
 }
-
-provider "harness" {
-  endpoint         = var.harness_platform_url
-  account_id       = var.harness_platform_account
-  platform_api_key = var.harness_platform_key
-}
 ```
 
-Pass credentials via `terraform.tfvars` or environment variables, not hardcoded values.
+Harness credentials can be configured via:
+- **Terraform variables**: `harness_platform_url`, `harness_platform_account`, and `harness_platform_key` (if needed)
+- **Environment variables**: `HARNESS_ACCOUNT_ID` and `HARNESS_PLATFORM_API_KEY`
 
 **Note**: The gitignore file in this repository explicitly ignores any file called `providers.tf` from commits.
 
@@ -83,8 +84,6 @@ Pass credentials via `terraform.tfvars` or environment variables, not hardcoded 
 - Target Organization: Must exist in the Harness account
 
 ## Variables
-
-**Note**: For `_ref` variables, prefix with `org.` or `account.` depending on scope; project-level connectors need no prefix.
 
 ### Connection (Required)
 

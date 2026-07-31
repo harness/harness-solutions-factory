@@ -10,8 +10,8 @@ resource "harness_platform_pipeline" "Create_and_Manage_IACM_Workspace" {
   }
   identifier  = "Create_and_Manage_IACM_Workspaces"
   name        = "Create and Manage IACM Workspaces"
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  org_id      = var.organization_id
+  project_id  = var.project_id
   description = "Pipeline designed to create and manage Harness IACM Workspaces along with IDP resource registration"
   // Load pipeline YAML template with workspace and infrastructure configuration
   yaml = templatefile(
@@ -19,8 +19,8 @@ resource "harness_platform_pipeline" "Create_and_Manage_IACM_Workspace" {
     {
       PIPELINE_IDENTIFIER : "Create_and_Manage_IACM_Workspaces"
       PIPELINE_NAME : "Create and Manage IACM Workspaces"
-      ORGANIZATION_ID : data.harness_platform_organization.selected.id
-      PROJECT_ID : data.harness_platform_project.selected.id
+      ORGANIZATION_ID : var.organization_id
+      PROJECT_ID : var.project_id
       DESCRIPTION : "Pipeline designed to create and manage Harness IACM Workspaces along with IDP resource registration"
 
       KUBERNETES_IMAGE_NAME : local.factory_floor_variables.kubernetes_override_image_name
@@ -37,8 +37,8 @@ resource "harness_platform_pipeline" "Create_and_Manage_IACM_Workspace" {
       IAC_PROVISIONER_TYPE : local.factory_floor_variables.provisioner_type
       IAC_PROVISIONER_VERSION : local.factory_floor_variables.provisioner_version
 
-      WORKSPACE_ORG : data.harness_platform_organization.selected.id
-      WORKSPACE_PROJECT : data.harness_platform_project.selected.id
+      WORKSPACE_ORG : var.organization_id
+      WORKSPACE_PROJECT : var.project_id
 
       DOCKER_REGISTRY_ID : local.factory_floor_variables.hsf_pipeline_connector_ref
       HSF_IACM_WORKSPACE_MGR_IMAGE : local.factory_floor_variables.hsf_iacm_manager_plugin

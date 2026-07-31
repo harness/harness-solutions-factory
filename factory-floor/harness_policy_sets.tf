@@ -30,8 +30,8 @@ resource "harness_platform_policyset" "policy_sets" {
 
   identifier = each.value.identifier
   name       = each.value.name
-  org_id     = data.harness_platform_organization.selected.id
-  project_id = data.harness_platform_project.selected.id
+  org_id     = var.organization_id
+  project_id = var.project_id
   action     = each.value.action
   type       = each.value.type
   enabled    = lookup(each.value, "enabled", true)

@@ -10,8 +10,8 @@ resource "harness_platform_pipeline" "Plan_and_Validate_IACM_Workspace" {
   }
   identifier  = "Plan_and_Validate_IACM_Workspace"
   name        = "Plan and Validate IACM Workspace"
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  org_id      = var.organization_id
+  project_id  = var.project_id
   description = "HSF provided pipeline intended to Plan and Validate against an IACM workspace"
   // Load pipeline YAML template with workspace and infrastructure configuration
   yaml = templatefile(
@@ -19,8 +19,8 @@ resource "harness_platform_pipeline" "Plan_and_Validate_IACM_Workspace" {
     {
       PIPELINE_IDENTIFIER : "Plan_and_Validate_IACM_Workspace"
       PIPELINE_NAME : "Plan and Validate IACM Workspace"
-      ORGANIZATION_ID : data.harness_platform_organization.selected.id
-      PROJECT_ID : data.harness_platform_project.selected.id
+      ORGANIZATION_ID : var.organization_id
+      PROJECT_ID : var.project_id
       DESCRIPTION : "HSF provided pipeline intended to Plan and Validate against an IACM workspace"
       KUBERNETES_IMAGE_NAME : local.factory_floor_variables.kubernetes_override_image_name
 
@@ -44,8 +44,8 @@ resource "harness_platform_pipeline" "Plan_and_Validate_IACM_Workspace" {
 
 // Set Plan/Validate as default pipeline for IACM workspace plan operations
 resource "harness_platform_iacm_default_pipeline" "plan_defaults" {
-  org_id           = data.harness_platform_organization.selected.id
-  project_id       = data.harness_platform_project.selected.id
+  org_id           = var.organization_id
+  project_id       = var.project_id
   provisioner_type = "opentofu"
   pipeline         = harness_platform_pipeline.Plan_and_Validate_IACM_Workspace.id
   operation        = "plan"

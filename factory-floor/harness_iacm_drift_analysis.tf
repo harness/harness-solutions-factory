@@ -10,8 +10,8 @@ resource "harness_platform_pipeline" "Execute_Drift_Analysis" {
   }
   identifier  = "Execute_Drift_Analysis"
   name        = "Execute Drift Analysis"
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  org_id      = var.organization_id
+  project_id  = var.project_id
   description = "HSF provided pipeline intended to perform a Drift Check against an IACM workspace"
 
   // Load pipeline YAML template with workspace and infrastructure configuration
@@ -20,8 +20,8 @@ resource "harness_platform_pipeline" "Execute_Drift_Analysis" {
     {
       PIPELINE_IDENTIFIER : "Execute_Drift_Analysis"
       PIPELINE_NAME : "Execute Drift Analysis"
-      ORGANIZATION_ID : data.harness_platform_organization.selected.id
-      PROJECT_ID : data.harness_platform_project.selected.id
+      ORGANIZATION_ID : var.organization_id
+      PROJECT_ID : var.project_id
       DESCRIPTION : "HSF provided pipeline intended to perform a Drift Check against an IACM workspace"
       KUBERNETES_IMAGE_NAME : local.factory_floor_variables.kubernetes_override_image_name
 
@@ -45,8 +45,8 @@ resource "harness_platform_pipeline" "Execute_Drift_Analysis" {
 
 // Set Drift Analysis as default pipeline for IACM workspace drift operations
 resource "harness_platform_iacm_default_pipeline" "drift_defaults" {
-  org_id           = data.harness_platform_organization.selected.id
-  project_id       = data.harness_platform_project.selected.id
+  org_id           = var.organization_id
+  project_id       = var.project_id
   provisioner_type = "opentofu"
   pipeline         = harness_platform_pipeline.Execute_Drift_Analysis.id
   operation        = "drift"

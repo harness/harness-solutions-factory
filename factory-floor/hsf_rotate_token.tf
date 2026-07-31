@@ -2,16 +2,16 @@
 resource "harness_platform_pipeline" "Rotate_HSF_Token_generic" {
   identifier  = "Rotate_Harness_Service_Account_Token_and_Secret"
   name        = "Rotate Harness Service Account Token and Secret"
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  org_id      = var.organization_id
+  project_id  = var.project_id
   description = "This pipeline is capable of rotating a Harness Service Account token and updating a Harness Secret with that value."
   yaml = templatefile(
     "${path.module}/templates/pipelines/pipe_Rotate_HSF_Token.yaml",
     {
       PIPELINE_IDENTIFIER : "Rotate_Harness_Service_Account_Token_and_Secret"
       PIPELINE_NAME : "Rotate Harness Service Account Token and Secret"
-      ORGANIZATION_ID : data.harness_platform_organization.selected.id
-      PROJECT_ID : data.harness_platform_project.selected.id
+      ORGANIZATION_ID : var.organization_id
+      PROJECT_ID : var.project_id
       DESCRIPTION : "This pipeline is capable of rotating a Harness Service Account token and updating a Harness Secret with that value."
 
       USE_HARNESS_IDP : local.factory_floor_variables.should_use_harness_idp ? "true" : "skipped"

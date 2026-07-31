@@ -2,6 +2,18 @@
 
 All notable changes to the Harness Solutions Factory Pilot Light module are documented in this file.
 
+## v2.5.2
+
+### Updated
+- Refactored pilot-light workspace to remove redundant SCM source and provisioner terraform variables, consolidating configuration management
+- Updated default HSF source branch from v2.5.1 to v2.5.2
+- Git connector URL reverted from goodrum-harness to official harness organization
+- Added repository connector and branch/commit/sha references to pilot-light workspace ignore_changes list to preserve custom repository configuration
+
+### Removed
+- Redundant terraform variables from pilot-light workspace: `hsf_source_repository`, `hsf_source_fetch_type`, `hsf_source_branch`, `provisioner_type`, `provisioner_version`
+- Redundant terraform variables from solutions-factory workspace: `hsf_source_connector`, `hsf_source_repository`, `hsf_source_fetch_type`, `hsf_source_branch`, `provisioner_type`, `provisioner_version`
+
 ## v2.5.1
 
 ### Added

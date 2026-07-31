@@ -28,6 +28,12 @@ variable "should_create_hsf_core_mgr_workspace" {
   default     = true
 }
 
+variable "should_use_primary_hsf_workspace" {
+  type        = bool
+  description = "Should we use the existing master Harness Solutions Factory workspace to control variables?"
+  default     = true
+}
+
 variable "should_use_harness_idp" {
   type        = bool
   description = "Enable Harness IDP for the Solutions Factory"

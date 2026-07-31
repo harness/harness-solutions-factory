@@ -92,7 +92,7 @@ data "harness_platform_usergroup" "org_usergroup" {
     for group in local.existing_groups_org : group.identifier => group
   }
   identifier = each.value.identifier
-  org_id     = data.harness_platform_organization.selected.id
+  org_id     = var.organization_id
 }
 
 // Fetch project-scoped user groups for reference
@@ -101,8 +101,8 @@ data "harness_platform_usergroup" "usergroup" {
     for group in local.existing_groups : group.identifier => group
   }
   identifier = each.value.identifier
-  org_id     = data.harness_platform_organization.selected.id
-  project_id = data.harness_platform_project.selected.id
+  org_id     = var.organization_id
+  project_id = var.project_id
 }
 
 // Create or update user groups with external management and notification settings
@@ -115,8 +115,8 @@ resource "harness_platform_usergroup" "usergroup" {
 
   identifier  = each.value.identifier
   name        = each.value.name
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  org_id      = var.organization_id
+  project_id  = var.project_id
   description = lookup(each.value, "description", "Harness UserGroup managed by Solutions Factory")
   user_emails = []
 
@@ -158,8 +158,8 @@ resource "harness_platform_role_assignments" "usergroup_bindings" {
   }
 
   identifier = each.value.identifier
-  org_id     = data.harness_platform_organization.selected.id
-  project_id = data.harness_platform_project.selected.id
+  org_id     = var.organization_id
+  project_id = var.project_id
 
   resource_group_identifier = each.value.resource_group
   role_identifier           = each.value.role

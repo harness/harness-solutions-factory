@@ -43,35 +43,36 @@ terraform apply
 
 ## Providers
 
-This module requires the [Harness Provider](https://registry.terraform.io/providers/harness/harness/latest/docs) (version >= 0.41). Required credentials must be provided via Terraform variables or environment variables (`HARNESS_ACCOUNT_ID`, `HARNESS_PLATFORM_API_KEY`).
+This module requires:
+- **Terraform** version >= 1.10.0, < 2.0.0
+- **Harness Provider** (version >= 0.41)
+- **HashiCorp Time Provider** (version ~> 0.14.0)
+
+Required credentials must be provided via Terraform variables or environment variables.
 
 ### Required Provider Configuration
 
-Included in the parent module is `providers.tf` with the provider declaration:
+Provider configuration is defined in `terraform.tf`:
 
 ```hcl
 terraform {
+  required_version = ">= 1.10.0, < 2.0.0"
   required_providers {
     harness = {
       source  = "harness/harness"
       version = ">= 0.41"
     }
     time = {
-      source = "hashicorp/time"
+      source  = "hashicorp/time"
+      version = "~> 0.14.0"
     }
   }
 }
-
-provider "harness" {
-  endpoint         = var.harness_platform_url
-  account_id       = var.harness_platform_account
-  platform_api_key = var.harness_platform_key
-}
 ```
 
-Alternatively, set environment variables:
-- `HARNESS_ACCOUNT_ID` — Harness account number
-- `HARNESS_PLATFORM_API_KEY` — Harness API key
+Harness credentials can be configured via:
+- **Terraform variables**: `harness_platform_url`, `harness_platform_account`, and `harness_platform_key` (if needed)
+- **Environment variables**: `HARNESS_ACCOUNT_ID` and `HARNESS_PLATFORM_API_KEY`
 
 ## Prerequisites
 
@@ -104,17 +105,17 @@ Alternatively, set environment variables:
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| `git_connector_ref` | Git connector for IACM workspace code | string | `null` |
-| `git_repository_name` | Repository name | string | `null` |
-| `git_repository_branch` | Branch to deploy from | string | `null` |
-| `existing_harness_platform_key_ref` | Harness API key reference | string | `null` |
+| `git_connector_ref` | Git connector for IACM workspace code | string |  `null` |
+| `git_repository_name` | Repository name | string |  `null` |
+| `git_repository_branch` | Branch to deploy from | string |  `null` |
+| `existing_harness_platform_key_ref` | Harness API key reference | string |  `null` |
 
 ### Kubernetes (Optional)
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | `kubernetes_connector` | Connector reference for K8s execution | string | `null` |
-| `kubernetes_namespace` | Namespace for pipeline execution | string | `null` |
+| `kubernetes_namespace` | Namespace for pipeline execution | string | `default` |
 | `kubernetes_serviceaccount` | Service account for K8s pods | string | `null` |
 | `kubernetes_override_run_as_user` | Unix UID for pod security context | string | `null` |
 | `kubernetes_node_selectors` | Node selectors for pod scheduling | map(any) | `{}` |
@@ -125,26 +126,74 @@ Alternatively, set environment variables:
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| `provisioner_type` | Tool: `terraform` or `opentofu` | string | `null` |
-| `provisioner_version` | Provisioner version | string | `null` |
+| `provisioner_type` | Tool: `terraform` or `opentofu` | string |  `null` |
+| `provisioner_version` | Provisioner version | string |  `null` |
 
 ### Factory Floor and IDP
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| `should_use_harness_idp` | Enable Harness IDP integration | bool | `null` |
+| `should_use_harness_idp` | Enable Harness IDP integration | bool |  `null` |
 | `should_create_hsf_core_mgr_workspace` | Create core management workspace (requires IDP disabled) | bool | `true` |
+| `should_use_primary_hsf_workspace` | Should we use the existing master Harness Solutions Factory workspace to control variables? | bool | `true` |
 
 ### HSF Plugins
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| `hsf_pipeline_connector_ref` | Connector for HSF plugin images | string | `null` |
-| `hsf_script_mgr_image` | Script Manager image path | string | `null` |
-| `hsf_rotate_token_plugin` | Token Rotation plugin image | string | `null` |
-| `hsf_iacm_manager_plugin` | IACM Workspace Manager plugin image | string | `null` |
-| `hsf_idp_resource_mgr_image` | IDP Resource Manager image | string | `null` |
-| `hsf_plugin_ssl_verify_x509_strict` | Enforce strict SSL/X.509 validation in plugins | bool | `null` |
+| `hsf_pipeline_connector_ref` | Connector for HSF plugin images | string |  `null` |
+| `hsf_script_mgr_image` | Script Manager image path | string |  `null` |
+| `hsf_rotate_token_plugin` | Token Rotation plugin image | string |  `null` |
+| `hsf_iacm_manager_plugin` | IACM Workspace Manager plugin image | string |  `null` |
+| `hsf_idp_resource_mgr_image` | IDP Resource Manager image | string |  `null` |
+| `hsf_plugin_ssl_verify_x509_strict` | Enforce strict SSL/X.509 validation in plugins | bool | `true` |
+
+## Directory Structure
+
+The factory-floor module is organized as follows:
+
+```
+factory-floor/
+├── Terraform Configuration Files
+│   ├── main.tf              # Main configuration (currently minimal)
+│   ├── providers.tf         # Provider configuration (commented out)
+│   ├── terraform.tf         # Terraform and required providers block
+│   ├── variables.tf         # Input variables
+│   ├── outputs.tf           # Output definitions
+│   └── locals.tf            # Local variable definitions
+│
+├── Resource Modules
+│   ├── harness_groups.tf                 # Harness group definitions
+│   ├── harness_roles.tf                  # Project role definitions
+│   ├── harness_resource_groups.tf        # Resource group configurations
+│   ├── harness_policies.tf               # Policy definitions
+│   ├── harness_policy_sets.tf            # Policy set configurations
+│   ├── harness_iacm_create_workspace.tf  # Create workspace pipeline
+│   ├── harness_iacm_provision.tf         # Provision workspace pipeline
+│   ├── harness_iacm_plan_validate.tf     # Plan and validate pipeline
+│   ├── harness_iacm_drift_analysis.tf    # Drift analysis pipeline
+│   ├── harness_iacm_teardown.tf          # Teardown pipeline
+│   ├── harness_iacm_bulk_mgmt.tf         # Bulk management pipeline
+│   ├── harness_hsf_core_mgr.tf           # Core manager workspace
+│   └── hsf_rotate_token.tf               # Token rotation pipeline
+│
+├── Pipeline Templates
+│   └── templates/
+│       ├── pipelines/         # Pipeline YAML templates
+│       ├── groups/            # Group templates
+│       ├── roles/             # Role templates
+│       ├── policies/          # Policy templates
+│       ├── policy_sets/       # Policy set templates
+│       └── resource_groups/   # Resource group templates
+│
+├── Configuration Files
+│   ├── terraform.tfvars.example  # Example variables file
+│   └── .terraform.lock.hcl      # Dependency lock file
+│
+└── Documentation
+    ├── README.md                # This file
+    └── CHANGELOG.md             # Version history
+```
 
 ## Configuration
 

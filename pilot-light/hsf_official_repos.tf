@@ -1,6 +1,6 @@
 // Official Harness Solutions Factory Git Connector (created only if custom connector not provided)
 resource "harness_platform_connector_git" "hsf_official" {
-  count = var.hsf_source_connector == "skipped" ? 1 : 0
+  count = local.should_create_github_connector
   lifecycle {
     ignore_changes = [credentials]
   }
@@ -13,8 +13,7 @@ resource "harness_platform_connector_git" "hsf_official" {
     ["required_for:iacm_workspaces"],
   ])
 
-  # url             = "https://github.com/harness"
-  url             = "https://github.com/goodrum-harness"
+  url             = "https://github.com/harness"
   validation_repo = "harness-solutions-factory"
   connection_type = "Account"
   credentials {

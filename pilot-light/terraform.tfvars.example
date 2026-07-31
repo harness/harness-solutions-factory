@@ -48,7 +48,7 @@ hsf_source_repository = "harness-solutions-factory"
 hsf_source_fetch_type = "tag"
 
 # SCM source reference (branch name, tag, or commit SHA) for IACM workspaces
-hsf_source_branch = "v2.5.1"
+hsf_source_branch = "v2.5.2"
 
 #######
 # Kubernetes Configurations and Settings

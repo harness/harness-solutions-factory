@@ -2,6 +2,23 @@
 
 All notable changes to the Harness Solutions Factory module are documented in this file.
 
+## v2.5.2
+
+### Added
+- Solutions Factory workspace resource (`hsf_ws_solutions_factory.tf`) for centralized IACM configuration and terraform variable management
+- Local variable extraction of terraform variables from Solutions Factory workspace for factory_floor module configuration
+
+### Updated
+- Refactored factory_floor module invocation to receive variables from Solutions Factory workspace terraform variables instead of direct input parameters
+- Updated default HSF source branch from v2.5.1 to v2.5.2
+- Changed Solutions Factory workspace reference from data source to managed resource for improved configuration control
+- Modified hsf_hub_mgr workspace to reference managed Solutions Factory workspace instead of data source
+- Updated Deploy Factory Floor pipeline to source git repository configuration from workspace properties instead of locals
+- Removed unnecessary dependency declaration from enable_hsf_mini_factory platform variable
+
+### Removed
+- Data source for Solutions Factory workspace (now managed as importable resource)
+
 ## v2.5.1
 
 ### Added

@@ -27,7 +27,6 @@ resource "harness_platform_variables" "HARNESS_PORTAL_RESOURCES" {
 
 // Mini-Factory feature flag
 resource "harness_platform_variables" "enable_hsf_mini_factory" {
-  depends_on  = [data.harness_platform_project.selected]
   identifier  = "enable_hsf_mini_factory"
   name        = "Should HSF Mini-Factory configuration be leveraged"
   type        = "String"

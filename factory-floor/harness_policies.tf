@@ -27,8 +27,8 @@ resource "harness_platform_policy" "policies" {
   identifier  = each.value.identifier
   name        = each.value.name
   description = lookup(each.value, "description", "Harness Policy managed by Solutions Factory")
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  org_id      = var.organization_id
+  project_id  = var.project_id
   rego        = each.value.payload
 
   // Ignore git-related changes managed externally

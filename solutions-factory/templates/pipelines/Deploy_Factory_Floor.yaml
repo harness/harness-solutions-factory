@@ -188,9 +188,9 @@ ${IACM_STAGE_INFRASTRUCTURE}
       value: <+input>.default(${ORGANIZATION_ID})
     - name: Project_ID
       type: String
-      description: Enter the Harness Project within the chosen Organization into which this Factory Floor should be deployed
+      description: Enter the Harness Project within the chosen Organization into which this Factory Floor should be deployed. Should not exceed 128 characters and must be unique in your Organization
       required: true
-      value: <+input>
+      value: <+input>.regex(^([a-zA-Z][_a-zA-Z0-9]*)$)
     - name: Deployment_Type
       type: String
       description: Enter the Factory Floor Type which should be deployed. Note - Mini-Factory will create the project and add the Factory Floor, while the Factory-Floor will be applied against an existing project.

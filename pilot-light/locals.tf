@@ -22,12 +22,19 @@ locals {
   harness_solutions_factory_repo = var.hsf_source_repository
 
   // Use custom connector if provided, otherwise default to official repository connector
-  harness_solutions_factory_repo_connector = (
-    var.hsf_source_connector != "skipped"
+  should_create_github_connector = (
+    contains(["skipped","org.Harness_Solutions_Factory_Repo___Official"],var.hsf_source_connector)
     ?
-    var.hsf_source_connector
+    1
     :
+    0
+  )
+  harness_solutions_factory_repo_connector = (
+    var.hsf_source_connector == "skipped"
+    ?
     "org.${harness_platform_connector_git.hsf_official.0.id}"
+    :
+    var.hsf_source_connector
   )
 
   // Conditionally set branch reference based on fetch type
@@ -145,18 +152,18 @@ locals {
   }
 
   should_create_docker_connector = (
-    var.hsf_pipeline_connector_ref == "skipped"
+    contains(["skipped","org.hsf_dockerhub_connector"],var.hsf_pipeline_connector_ref)
     ?
     1
     :
     0
   )
   hsf_pipeline_connector_ref = (
-    var.hsf_pipeline_connector_ref != "skipped"
+    contains(["skipped","org.hsf_dockerhub_connector"],var.hsf_pipeline_connector_ref)
     ?
-    var.hsf_pipeline_connector_ref
-    :
     "org.${harness_platform_connector_docker.hsf.0.id}"
+    :
+    var.hsf_pipeline_connector_ref
   )
 
   hsf_plugin_workspace_variables = [

@@ -9,13 +9,6 @@ data "harness_platform_project" "selected" {
   org_id     = data.harness_platform_organization.selected.id
 }
 
-// Fetch the primary Solutions Factory workspace configuration
-data "harness_platform_workspace" "solutions_factory" {
-  identifier = "harness_solutions_factory"
-  org_id     = data.harness_platform_organization.selected.id
-  project_id = data.harness_platform_project.selected.id
-}
-
 // Fetch the SCM connector for the custom template library
 data "harness_platform_variables" "custom_template_library_connector" {
   identifier = "custom_template_library_connector"

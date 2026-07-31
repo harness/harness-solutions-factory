@@ -82,7 +82,7 @@ variable "hsf_source_fetch_type" {
 variable "hsf_source_branch" {
   type        = string
   description = "SCM source reference (branch name, tag, or commit SHA) for IACM workspaces"
-  default     = "v2.5.1"
+  default     = "v2.5.2"
 }
 
 // Kubernetes Configurations for Pipeline Execution

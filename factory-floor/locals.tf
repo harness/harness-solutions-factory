@@ -28,11 +28,19 @@ locals {
   )
 
   // Gather Terraform variables from Solutions Factory workspace as defaults
-  solutions_factory_ws_defaults = flatten([{
-    for elem in data.harness_platform_workspace.solutions_factory.terraform_variable :
-    (elem.key) => (elem.value)
-    }
-  ])
+  solutions_factory_ws_defaults = (
+    var.should_use_primary_hsf_workspace
+    ?
+    flatten([merge({
+      for elem in data.harness_platform_workspace.solutions_factory[0].terraform_variable :
+      (elem.key) => (elem.value)
+      }, {
+      provisioner_type : data.harness_platform_workspace.solutions_factory[0].provisioner_type
+      provisioner_version : data.harness_platform_workspace.solutions_factory[0].provisioner_version
+    })])
+    :
+    []
+  )
 
   solutions_factory_defaults = length(local.solutions_factory_ws_defaults) > 0 ? local.solutions_factory_ws_defaults[0] : {}
 

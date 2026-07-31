@@ -2,6 +2,13 @@
 
 All notable changes to the Harness Solutions Factory Factory Floor module are documented in this file.
 
+## v2.5.2
+
+### Updated
+- Refactored organization and project ID references to use variables (`var.organization_id`, `var.project_id`) instead of data sources across all Terraform configuration files for improved flexibility and consistency
+- Enhanced README documentation with detailed provider requirements, directory structure overview, and improved credential configuration guidance
+- Updated variable documentation in README to clarify required parameters and provide descriptive defaults for optional configuration options
+
 ## v2.5.1
 
 ### Added

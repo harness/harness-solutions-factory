@@ -139,9 +139,9 @@ Pass credentials via `terraform.tfvars` or environment variables:
 | --- | --- | --- | --- |
 | `hsf_pipeline_connector_ref` | Connector for HSF plugin images | string | `org.hsf_dockerhub_connector` |
 | `hsf_script_mgr_image` | Script Manager image path | string | `harnesssolutionfactory/harness-python-api-sdk:v1.14.0` |
-| `hsf_rotate_token_plugin` | Token Rotation plugin image | string | `harnesssolutionfactory/harness-token-rotation:v1.2.4` |
 | `hsf_iacm_manager_plugin` | IACM Workspace Manager plugin image | string | `harnesssolutionfactory/harness-manage-iacm-workspace:v1.7.7` |
 | `hsf_idp_resource_mgr_image` | IDP Resource Manager image | string | `harnesssolutionfactory/harness-idp-resource-manager:v1.3.6` |
+| `hsf_rotate_token_plugin` | Token Rotation plugin image | string | `harnesssolutionfactory/harness-token-rotation:v1.2.4` |
 | `hsf_plugin_ssl_verify_x509_strict` | Enforce strict SSL/X.509 validation | bool | `true` |
 | `enable_hsf_mini_factory` | Enable Mini Factory configuration | bool | `false` |
 | `should_use_harness_idp` | Enable Harness IDP integration | bool | `true` |

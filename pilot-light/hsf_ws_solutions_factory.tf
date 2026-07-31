@@ -28,30 +28,6 @@ resource "harness_platform_workspace" "solutions_factory" {
   tags                    = ["source:hsf_system", "type:solutions_factory"]
 
   terraform_variable {
-    key        = "hsf_source_connector"
-    value      = local.harness_solutions_factory_repo_connector
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_source_repository"
-    value      = local.harness_solutions_factory_repo
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_source_fetch_type"
-    value      = var.hsf_source_fetch_type
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_source_branch"
-    value      = var.hsf_source_branch
-    value_type = "string"
-  }
-
-  terraform_variable {
     key        = "git_connector_ref"
     value      = local.harness_template_library_repo_connector
     value_type = "string"
@@ -72,18 +48,6 @@ resource "harness_platform_workspace" "solutions_factory" {
   terraform_variable {
     key        = "git_repository_branch"
     value      = local.harness_template_library_fetch_key
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "provisioner_type"
-    value      = var.provisioner_type
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "provisioner_version"
-    value      = var.provisioner_version
     value_type = "string"
   }
 

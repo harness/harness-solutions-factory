@@ -10,8 +10,8 @@ resource "harness_platform_pipeline" "Bulk_Workspace_Management" {
   }
   identifier  = "Bulk_Workspace_Management"
   name        = "Bulk Workspace Management"
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  org_id      = var.organization_id
+  project_id  = var.project_id
   description = "Pipeline to handle bulk actions against IACM Workspaces"
   // Load pipeline YAML template with workspace and infrastructure configuration
   yaml = templatefile(
@@ -19,8 +19,8 @@ resource "harness_platform_pipeline" "Bulk_Workspace_Management" {
     {
       PIPELINE_IDENTIFIER : "Bulk_Workspace_Management"
       PIPELINE_NAME : "Bulk Workspace Management"
-      ORGANIZATION_ID : data.harness_platform_organization.selected.id
-      PROJECT_ID : data.harness_platform_project.selected.id
+      ORGANIZATION_ID : var.organization_id
+      PROJECT_ID : var.project_id
       DESCRIPTION : "Pipeline to handle bulk actions against IACM Workspaces"
 
       IACM_STAGE_INFRASTRUCTURE : local.IACM_STAGE_INFRASTRUCTURE

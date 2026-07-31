@@ -23,8 +23,8 @@ resource "harness_platform_workspace" "hsf_core_mgr" {
     No resource or configuration changes should be made directly to this workspace.
   EOF
 
-  org_id              = data.harness_platform_organization.selected.id
-  project_id          = data.harness_platform_project.selected.id
+  org_id              = var.organization_id
+  project_id          = var.project_id
   provisioner_type    = local.factory_floor_variables.provisioner_type
   provisioner_version = local.factory_floor_variables.provisioner_version
 

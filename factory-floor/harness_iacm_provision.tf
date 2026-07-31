@@ -10,8 +10,8 @@ resource "harness_platform_pipeline" "Provision_IACM_Workspace" {
   }
   identifier  = "Provision_Workspace"
   name        = "Provision Workspace"
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  org_id      = var.organization_id
+  project_id  = var.project_id
   description = "HSF provided pipeline intended to Provision an IACM workspace"
 
   // Load pipeline YAML template with workspace and infrastructure configuration
@@ -20,8 +20,8 @@ resource "harness_platform_pipeline" "Provision_IACM_Workspace" {
     {
       PIPELINE_IDENTIFIER : "Provision_Workspace"
       PIPELINE_NAME : "Provision Workspace"
-      ORGANIZATION_ID : data.harness_platform_organization.selected.id
-      PROJECT_ID : data.harness_platform_project.selected.id
+      ORGANIZATION_ID : var.organization_id
+      PROJECT_ID : var.project_id
       DESCRIPTION : "HSF provided pipeline intended to Provision an IACM workspace"
       KUBERNETES_IMAGE_NAME : local.factory_floor_variables.kubernetes_override_image_name
 
@@ -45,8 +45,8 @@ resource "harness_platform_pipeline" "Provision_IACM_Workspace" {
 
 // Set Provision as default pipeline for IACM workspace apply operations
 resource "harness_platform_iacm_default_pipeline" "provision_defaults" {
-  org_id           = data.harness_platform_organization.selected.id
-  project_id       = data.harness_platform_project.selected.id
+  org_id           = var.organization_id
+  project_id       = var.project_id
   provisioner_type = "opentofu"
   pipeline         = harness_platform_pipeline.Provision_IACM_Workspace.id
   operation        = "apply"

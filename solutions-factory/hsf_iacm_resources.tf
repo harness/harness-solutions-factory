@@ -1,38 +1,49 @@
 // Factory Floor Module - IACM workspace management and pipeline orchestration
 locals {
   hsf_core_mgr_workspace = "HSF_Core_Manager"
+
+  solutions_factory_ws_defaults = flatten([{
+    for elem in harness_platform_workspace.solutions_factory.terraform_variable :
+    (elem.key) => (elem.value)
+    }
+  ])
+
+  solutions_factory_defaults = length(local.solutions_factory_ws_defaults) > 0 ? local.solutions_factory_ws_defaults[0] : {}
 }
 
 // Invoke the factory-floor module for IACM operations
 module "factory_floor" {
-  source = "../factory-floor"
+  depends_on = [harness_platform_workspace.solutions_factory]
+  source     = "../factory-floor"
 
   harness_platform_url     = var.harness_platform_url
   harness_platform_account = var.harness_platform_account
 
-  organization_id                      = data.harness_platform_organization.selected.id
-  project_id                           = data.harness_platform_project.selected.id
+  organization_id                      = var.organization_id
+  project_id                           = var.project_id
   should_create_hsf_core_mgr_workspace = false
+  should_use_primary_hsf_workspace     = false
 
-  existing_harness_platform_key_ref   = var.existing_harness_platform_key_ref
-  git_connector_ref                   = var.git_connector_ref
-  git_repository_name                 = var.git_repository_name
-  git_repository_branch               = var.git_repository_branch
-  kubernetes_connector                = var.kubernetes_connector
-  kubernetes_namespace                = var.kubernetes_namespace
-  kubernetes_serviceaccount           = var.kubernetes_serviceaccount
-  kubernetes_override_run_as_user     = var.kubernetes_override_run_as_user
-  kubernetes_node_selectors           = var.kubernetes_node_selectors
-  kubernetes_override_image_connector = var.kubernetes_override_image_connector
-  kubernetes_override_image_name      = var.kubernetes_override_image_name
-  provisioner_type                    = var.provisioner_type
-  provisioner_version                 = var.provisioner_version
-  hsf_pipeline_connector_ref          = var.hsf_pipeline_connector_ref
-  hsf_script_mgr_image                = var.hsf_script_mgr_image
-  hsf_idp_resource_mgr_image          = var.hsf_idp_resource_mgr_image
-  hsf_iacm_manager_plugin             = var.hsf_iacm_manager_plugin
-  should_use_harness_idp              = var.should_use_harness_idp
-  hsf_plugin_ssl_verify_x509_strict   = var.hsf_plugin_ssl_verify_x509_strict
+  existing_harness_platform_key_ref   = local.solutions_factory_defaults.existing_harness_platform_key_ref
+  git_connector_ref                   = local.solutions_factory_defaults.git_connector_ref
+  git_repository_name                 = local.solutions_factory_defaults.git_repository_name
+  git_repository_branch               = local.solutions_factory_defaults.git_repository_branch
+  kubernetes_connector                = local.solutions_factory_defaults.kubernetes_connector
+  kubernetes_namespace                = local.solutions_factory_defaults.kubernetes_namespace
+  kubernetes_serviceaccount           = local.solutions_factory_defaults.kubernetes_serviceaccount
+  kubernetes_override_run_as_user     = local.solutions_factory_defaults.kubernetes_override_run_as_user
+  kubernetes_node_selectors           = jsondecode(local.solutions_factory_defaults.kubernetes_node_selectors)
+  kubernetes_override_image_connector = local.solutions_factory_defaults.kubernetes_override_image_connector
+  kubernetes_override_image_name      = local.solutions_factory_defaults.kubernetes_override_image_name
+  provisioner_type                    = harness_platform_workspace.solutions_factory.provisioner_type
+  provisioner_version                 = harness_platform_workspace.solutions_factory.provisioner_version
+  hsf_pipeline_connector_ref          = local.solutions_factory_defaults.hsf_pipeline_connector_ref
+  hsf_script_mgr_image                = local.solutions_factory_defaults.hsf_script_mgr_image
+  hsf_idp_resource_mgr_image          = local.solutions_factory_defaults.hsf_idp_resource_mgr_image
+  hsf_iacm_manager_plugin             = local.solutions_factory_defaults.hsf_iacm_manager_plugin
+  hsf_rotate_token_plugin             = local.solutions_factory_defaults.hsf_rotate_token_plugin
+  should_use_harness_idp              = local.solutions_factory_defaults.should_use_harness_idp
+  hsf_plugin_ssl_verify_x509_strict   = local.solutions_factory_defaults.hsf_plugin_ssl_verify_x509_strict
 }
 
 // Pipeline to deploy HSF Factory Floor to a project
@@ -59,10 +70,20 @@ resource "harness_platform_pipeline" "Deploy_Factory_Floor" {
       IACM_STAGE_INFRASTRUCTURE : local.IACM_STAGE_INFRASTRUCTURE
       IDP_STAGE_INFRASTRUCTURE : local.IDP_STAGE_INFRASTRUCTURE
 
-      GIT_REPOSITORY_CONNECTOR : local.harness_solutions_factory_repo_connector
-      GIT_REPOSITORY_NAME : local.harness_solutions_factory_repo
-      GIT_REPOSITORY_SOURCE_TYPE : local.harness_solutions_factory_type
-      GIT_REPOSITORY_BRANCH : local.harness_solutions_factory_key
+      GIT_REPOSITORY_CONNECTOR : harness_platform_workspace.solutions_factory.repository_connector
+      GIT_REPOSITORY_NAME : harness_platform_workspace.solutions_factory.repository
+      GIT_REPOSITORY_SOURCE_TYPE : (
+        harness_platform_workspace.solutions_factory.repository_commit != ""
+        ?
+        "tag"
+        :
+        harness_platform_workspace.solutions_factory.repository_sha != ""
+        ?
+        "sha"
+        :
+        "branch"
+      )
+      GIT_REPOSITORY_BRANCH : harness_platform_workspace.solutions_factory.repository_branch
 
       HTL_REPOSITORY_CONNECTOR : local.harness_template_library_repo_connector
       HTL_REPOSITORY_NAME : local.harness_template_library_repo_name

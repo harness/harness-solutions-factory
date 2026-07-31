@@ -14,6 +14,9 @@ project_id = # Required
 # Create HSF Core Manager workspace (only valid when should_use_harness_idp is false)
 should_create_hsf_core_mgr_workspace = true
 
+# Should we use the existing master Harness Solutions Factory workspace to control variables?
+should_use_primary_hsf_workspace = true
+
 # Enable Harness IDP for the Solutions Factory
 should_use_harness_idp = null
 

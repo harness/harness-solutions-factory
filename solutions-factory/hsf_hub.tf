@@ -25,14 +25,14 @@ resource "harness_platform_workspace" "hsf_hub_mgr" {
   identifier          = local.hsf_hub_mgr_id
   org_id              = data.harness_platform_organization.selected.id
   project_id          = data.harness_platform_project.selected.id
-  provisioner_type    = data.harness_platform_workspace.solutions_factory.provisioner_type
-  provisioner_version = data.harness_platform_workspace.solutions_factory.provisioner_version
+  provisioner_type    = harness_platform_workspace.solutions_factory.provisioner_type
+  provisioner_version = harness_platform_workspace.solutions_factory.provisioner_version
 
-  repository_connector = data.harness_platform_workspace.solutions_factory.repository_connector
-  repository           = data.harness_platform_workspace.solutions_factory.repository
-  repository_branch    = data.harness_platform_workspace.solutions_factory.repository_branch != "" ? data.harness_platform_workspace.solutions_factory.repository_branch : null
-  repository_commit    = data.harness_platform_workspace.solutions_factory.repository_commit != "" ? data.harness_platform_workspace.solutions_factory.repository_commit : null
-  repository_sha       = data.harness_platform_workspace.solutions_factory.repository_sha != "" ? data.harness_platform_workspace.solutions_factory.repository_sha : null
+  repository_connector = harness_platform_workspace.solutions_factory.repository_connector
+  repository           = harness_platform_workspace.solutions_factory.repository
+  repository_branch    = harness_platform_workspace.solutions_factory.repository_branch != "" ? harness_platform_workspace.solutions_factory.repository_branch : null
+  repository_commit    = harness_platform_workspace.solutions_factory.repository_commit != "" ? harness_platform_workspace.solutions_factory.repository_commit : null
+  repository_sha       = harness_platform_workspace.solutions_factory.repository_sha != "" ? harness_platform_workspace.solutions_factory.repository_sha : null
   repository_path      = "hsf-hub"
 
   cost_estimation_enabled = false

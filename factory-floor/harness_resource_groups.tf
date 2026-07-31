@@ -30,8 +30,8 @@ resource "harness_platform_resource_group" "resource_groups" {
   name        = each.value.name
   description = lookup(each.value, "description", "Harness ResourceGroup managed by Solutions Factory")
   account_id  = var.harness_platform_account
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  org_id      = var.organization_id
+  project_id  = var.project_id
 
   allowed_scope_levels = ["project"]
 
@@ -39,8 +39,8 @@ resource "harness_platform_resource_group" "resource_groups" {
   included_scopes {
     filter     = "EXCLUDING_CHILD_SCOPES"
     account_id = var.harness_platform_account
-    org_id     = data.harness_platform_organization.selected.id
-    project_id = data.harness_platform_project.selected.id
+    org_id     = var.organization_id
+    project_id = var.project_id
   }
 
   // Apply resource filters based on type, identifiers, and attributes

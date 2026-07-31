@@ -13,6 +13,11 @@ resource "harness_platform_workspace" "pilot_light" {
       provisioner_type,
       provisioner_version,
       provider_connector,
+      repository_connector,
+      repository,
+      repository_branch,
+      repository_commit,
+      repository_sha,
     ]
   }
   name                = "Harness Pilot Light"
@@ -35,27 +40,13 @@ resource "harness_platform_workspace" "pilot_light" {
   cost_estimation_enabled = false
   tags                    = ["source:hsf_system", "type:pilot_light"]
 
+  // 2026-07-22
+  // Setitng this variable to prevent the creation of the default Github connector after initial setup,
+  // In the event that the workspace is configured to use its own repository connector, we need to
+  // preserve this setting across executions.
   terraform_variable {
     key        = "hsf_source_connector"
     value      = local.harness_solutions_factory_repo_connector
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_source_repository"
-    value      = local.harness_solutions_factory_repo
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_source_fetch_type"
-    value      = var.hsf_source_fetch_type
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "hsf_source_branch"
-    value      = var.hsf_source_branch
     value_type = "string"
   }
 
@@ -117,14 +108,8 @@ resource "harness_platform_workspace" "pilot_light" {
   }
 
   terraform_variable {
-    key        = "provisioner_type"
-    value      = var.provisioner_type
-    value_type = "string"
-  }
-
-  terraform_variable {
-    key        = "provisioner_version"
-    value      = var.provisioner_version
+    key        = "should_setup_custom_tpl"
+    value      = var.should_setup_custom_tpl
     value_type = "string"
   }
 

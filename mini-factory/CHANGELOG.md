@@ -2,6 +2,12 @@
 
 All notable changes to the Harness Solutions Factory Mini Factory module are documented in this file.
 
+## v2.5.2
+
+### Updated
+- README documentation with clarified provider requirements, credential configuration guidance, and removed inapplicable connector prefix note
+- Enhanced provider configuration documentation to reflect variable-based credential approach
+
 ## v2.5.1
 
 ### Changed
