@@ -23,7 +23,7 @@ locals {
 
   // Use custom connector if provided, otherwise default to official repository connector
   should_create_github_connector = (
-    contains(["skipped","org.Harness_Solutions_Factory_Repo___Official"],var.hsf_source_connector)
+    contains(["skipped", "org.Harness_Solutions_Factory_Repo___Official"], var.hsf_source_connector)
     ?
     1
     :
@@ -100,6 +100,7 @@ locals {
       { name = "kubernetes_connector", value = var.kubernetes_connector },
       { name = "kubernetes_namespace", value = var.kubernetes_namespace },
       { name = "kubernetes_serviceaccount", value = var.kubernetes_serviceaccount },
+      { name = "kubernetes_tolerations", value = jsonencode(var.kubernetes_tolerations) },
       { name = "kubernetes_node_selectors", value = jsonencode(var.kubernetes_node_selectors) },
       { name = "kubernetes_override_run_as_user", value = (
         var.kubernetes_override_run_as_user != "skipped"
@@ -141,6 +142,13 @@ locals {
     KUBERNETES_NAMESPACE : var.kubernetes_namespace
     KUBERNETES_SERVICEACCOUNT : (var.kubernetes_serviceaccount != "skipped" ? var.kubernetes_serviceaccount : "skipped")
     KUBERNETES_OVERRIDE_RUNAS : (var.kubernetes_override_run_as_user != "skipped" ? tonumber(var.kubernetes_override_run_as_user) : "skipped")
+    KUBERNETES_TOLERATIONS : (
+      length(var.kubernetes_tolerations) == 0
+      ?
+      "skipped"
+      :
+      replace(yamlencode(var.kubernetes_tolerations), "/((?:^|\n)[\\s-]*)\"([\\w-]+)\":/", "$1$2:")
+    )
     KUBERNETES_NODESELECTORS : (
       length(var.kubernetes_node_selectors) == 0
       ?
@@ -152,14 +160,14 @@ locals {
   }
 
   should_create_docker_connector = (
-    contains(["skipped","org.hsf_dockerhub_connector"],var.hsf_pipeline_connector_ref)
+    contains(["skipped", "org.hsf_dockerhub_connector"], var.hsf_pipeline_connector_ref)
     ?
     1
     :
     0
   )
   hsf_pipeline_connector_ref = (
-    contains(["skipped","org.hsf_dockerhub_connector"],var.hsf_pipeline_connector_ref)
+    contains(["skipped", "org.hsf_dockerhub_connector"], var.hsf_pipeline_connector_ref)
     ?
     "org.${harness_platform_connector_docker.hsf.0.id}"
     :

@@ -51,3 +51,4 @@ rendered/.keep
 # Don't commit MacOS finder files
 **/.DS_Store
 *.env
+.ai

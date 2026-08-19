@@ -2,6 +2,12 @@
 
 All notable changes to the Harness Solutions Factory Factory Floor module are documented in this file.
 
+## v2.5.3
+
+### Added
+- Kubernetes tolerations support via `kubernetes_tolerations` variable for advanced pod scheduling on tainted nodes
+- Validation for toleration effect, operator, and key/value fields
+
 ## v2.5.2
 
 ### Updated

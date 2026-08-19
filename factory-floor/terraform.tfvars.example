@@ -46,6 +46,9 @@ kubernetes_serviceaccount = null
 # Kubernetes pod runAs user ID override (must be a valid Unix integer or null)
 kubernetes_override_run_as_user = null
 
+# List of Kubernetes tolerations to apply. Each entry must include effect, key, operator, and value.
+kubernetes_tolerations = []
+
 # Kubernetes node selectors for pod scheduling
 kubernetes_node_selectors = {}
 

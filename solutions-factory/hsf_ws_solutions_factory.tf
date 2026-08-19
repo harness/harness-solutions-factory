@@ -106,6 +106,12 @@ resource "harness_platform_workspace" "solutions_factory" {
   }
 
   terraform_variable {
+    key        = "kubernetes_tolerations"
+    value      = jsonencode(var.kubernetes_tolerations)
+    value_type = "string"
+  }
+
+  terraform_variable {
     key        = "kubernetes_override_image_connector"
     value      = var.kubernetes_override_image_connector
     value_type = "string"

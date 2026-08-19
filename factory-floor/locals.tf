@@ -118,6 +118,14 @@ locals {
       var.kubernetes_node_selectors
     )
 
+    kubernetes_tolerations : (
+      var.kubernetes_tolerations == []
+      ?
+      jsondecode(lookup(local.solutions_factory_defaults, "kubernetes_tolerations", jsonencode(var.kubernetes_tolerations)))
+      :
+      var.kubernetes_tolerations
+    )
+
     kubernetes_override_image_connector : (
       var.kubernetes_override_image_connector == null
       ?
@@ -224,6 +232,13 @@ locals {
     KUBERNETES_NAMESPACE : local.factory_floor_variables.kubernetes_namespace
     KUBERNETES_SERVICEACCOUNT : (local.factory_floor_variables.kubernetes_serviceaccount != "skipped" ? local.factory_floor_variables.kubernetes_serviceaccount : "skipped")
     KUBERNETES_OVERRIDE_RUNAS : (local.factory_floor_variables.kubernetes_override_run_as_user != "skipped" ? tonumber(local.factory_floor_variables.kubernetes_override_run_as_user) : "skipped")
+    KUBERNETES_TOLERATIONS : (
+      length(local.factory_floor_variables.kubernetes_tolerations) == 0
+      ?
+      "skipped"
+      :
+      replace(yamlencode(local.factory_floor_variables.kubernetes_tolerations), "/((?:^|\n)[\\s-]*)\"([\\w-]+)\":/", "$1$2:")
+    )
     KUBERNETES_NODESELECTORS : (local.factory_floor_variables.kubernetes_node_selectors != "{}" ? yamlencode(local.factory_floor_variables.kubernetes_node_selectors) : "skipped")
     KUBERNETES_IMAGE_CONNECTOR : local.factory_floor_variables.kubernetes_override_image_connector
   }

@@ -136,6 +136,7 @@ _**NOTE**: This option should only be used when performing an initial setup of H
 | `kubernetes_serviceaccount` | Service account for K8s pods | string | `skipped` |
 | `kubernetes_override_run_as_user` | Unix UID for pod security context | string | `skipped` |
 | `kubernetes_node_selectors` | Node selectors for pod scheduling | map(any) | `{}` |
+| `kubernetes_tolerations` | List of Kubernetes tolerations to apply. Each entry must include `effect`, `key`, `operator`, and `value`. | list(map(string)) | `[]` |
 | `kubernetes_override_image_connector` | Custom container registry connector | string | `skipped` |
 | `kubernetes_override_image_name` | Custom IACM provisioner image | string | `skipped` |
 

@@ -14,6 +14,7 @@ variable "harness_platform_key" {
   type        = string
   description = "Harness Platform API Key for authentication (falls back to HARNESS_PLATFORM_API_KEY env var)"
   sensitive   = true
+  default     = null
 }
 
 variable "store_backend" {
@@ -82,7 +83,7 @@ variable "hsf_source_fetch_type" {
 variable "hsf_source_branch" {
   type        = string
   description = "SCM source reference (branch name, tag, or commit SHA) for IACM workspaces"
-  default     = "v2.5.2"
+  default     = "v2.5.3"
 }
 
 // Kubernetes Configurations for Pipeline Execution
@@ -129,6 +130,41 @@ variable "kubernetes_node_selectors" {
   type        = map(any)
   description = "Kubernetes node selectors for pod scheduling"
   default     = {}
+}
+
+variable "kubernetes_tolerations" {
+  description = "List of Kubernetes tolerations to apply. Each entry must include effect, key, operator, and value."
+  type = list(object({
+    effect   = string
+    key      = string
+    operator = string
+    value    = string
+  }))
+  default = []
+
+  validation {
+    condition = alltrue([
+      for t in var.kubernetes_tolerations :
+      contains(["NoSchedule", "PreferNoSchedule", "NoExecute"], t.effect)
+    ])
+    error_message = "Each toleration's 'effect' must be one of: NoSchedule, PreferNoSchedule, NoExecute."
+  }
+
+  validation {
+    condition = alltrue([
+      for t in var.kubernetes_tolerations :
+      contains(["Equal", "Exists"], t.operator)
+    ])
+    error_message = "Each toleration's 'operator' must be one of: Equal, Exists."
+  }
+
+  validation {
+    condition = alltrue([
+      for t in var.kubernetes_tolerations :
+      t.key != "" && t.value != ""
+    ])
+    error_message = "Each toleration must have non-empty 'key' and 'value' fields."
+  }
 }
 
 variable "kubernetes_override_image_connector" {

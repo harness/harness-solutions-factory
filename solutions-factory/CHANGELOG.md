@@ -2,6 +2,15 @@
 
 All notable changes to the Harness Solutions Factory module are documented in this file.
 
+## v2.5.3
+
+### Added
+- Kubernetes tolerations support via `kubernetes_tolerations` variable for advanced pod scheduling on tainted nodes
+- Validation for toleration effect, operator, and key/value fields
+
+### Updated
+- Updated default HSF source branch from v2.5.2 to v2.5.3
+
 ## v2.5.2
 
 ### Added

@@ -119,6 +119,7 @@ Harness credentials can be configured via:
 | `kubernetes_serviceaccount` | Service account for K8s pods | string | `null` |
 | `kubernetes_override_run_as_user` | Unix UID for pod security context | string | `null` |
 | `kubernetes_node_selectors` | Node selectors for pod scheduling | map(any) | `{}` |
+| `kubernetes_tolerations` | List of Kubernetes tolerations to apply. Each entry must include `effect`, `key`, `operator`, and `value`. | list(map(string)) | `[]` |
 | `kubernetes_override_image_connector` | Custom container registry connector | string | `null` |
 | `kubernetes_override_image_name` | Custom IACM provisioner image | string | `null` |
 

@@ -16,6 +16,13 @@ locals {
     KUBERNETES_NAMESPACE : var.kubernetes_namespace
     KUBERNETES_SERVICEACCOUNT : (var.kubernetes_serviceaccount != "skipped" ? var.kubernetes_serviceaccount : "skipped")
     KUBERNETES_OVERRIDE_RUNAS : (var.kubernetes_override_run_as_user != "skipped" ? tonumber(var.kubernetes_override_run_as_user) : "skipped")
+    KUBERNETES_TOLERATIONS : (
+      length(var.kubernetes_tolerations) == 0
+      ?
+      "skipped"
+      :
+      replace(yamlencode(var.kubernetes_tolerations), "/((?:^|\n)[\\s-]*)\"([\\w-]+)\":/", "$1$2:")
+    )
     KUBERNETES_NODESELECTORS : (
       length(var.kubernetes_node_selectors) == 0
       ?

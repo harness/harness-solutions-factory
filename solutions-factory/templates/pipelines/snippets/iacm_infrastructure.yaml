@@ -11,6 +11,12 @@
               serviceAccountName: ${KUBERNETES_SERVICEACCOUNT}
               %{~ endif ~}
               automountServiceAccountToken: true
+              %{~ if KUBERNETES_TOLERATIONS != "skipped" ~}
+              tolerations:
+                ${indent(16, KUBERNETES_TOLERATIONS)}
+              %{~ else ~}
+              tolerations: []
+              %{~ endif ~}
               %{~ if KUBERNETES_NODESELECTORS != "skipped" ~}
               nodeSelector:
                 ${KUBERNETES_NODESELECTORS}
