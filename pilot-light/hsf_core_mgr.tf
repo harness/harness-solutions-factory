@@ -7,7 +7,7 @@ locals {
 resource "harness_platform_workspace" "hsf_core_mgr" {
   count = var.should_use_harness_idp ? 0 : 1
   depends_on = [
-    time_sleep.core_resources
+    harness_time_sleep.core_resources
   ]
   lifecycle {
     ignore_changes = [

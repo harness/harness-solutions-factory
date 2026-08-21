@@ -58,11 +58,7 @@ terraform {
   required_providers {
     harness = {
       source  = "harness/harness"
-      version = ">= 0.41"
-    }
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.14.0"
+      version = ">= 0.45"
     }
     local = {
       source  = "hashicorp/local"
@@ -116,7 +112,7 @@ _**NOTE**: This option should only be used when performing an initial setup of H
 | `should_setup_custom_tpl` | Enable creating local Harness Code repository for custom configurations | bool | `false` |
 | `should_unpack` | Enable unpacking the Solutions Factory deployment | bool | `false` |
 | `should_use_harness_idp` | Enable Harness IDP for the Solutions Factory | bool | `true` |
-| `initial_admin_user` | Email address of primary HSF admin user (use 'skipped' to defer) | string | `skipped` |
+| `initial_admin_user` | Email address of primary HSF admin user | string | *required* |
 
 ### Source Control
 
@@ -125,7 +121,7 @@ _**NOTE**: This option should only be used when performing an initial setup of H
 | `scm_source_connector` | SCM connector reference; use `org.` or `account.` prefix as needed | string | `skipped` |
 | `scm_source_repository` | Repository name to use for IACM workspaces | string | `harness-solutions-factory` |
 | `scm_source_fetch_type` | Fetch type: `branch`, `tag`, or `sha` | string | `tag` |
-| `scm_source_branch` | Branch/tag/SHA to fetch | string | `v2.5.0` |
+| `scm_source_branch` | Branch/tag/SHA to fetch | string | `v2.5.4` |
 
 ### Kubernetes (Optional)
 
@@ -136,7 +132,7 @@ _**NOTE**: This option should only be used when performing an initial setup of H
 | `kubernetes_serviceaccount` | Service account for K8s pods | string | `skipped` |
 | `kubernetes_override_run_as_user` | Unix UID for pod security context | string | `skipped` |
 | `kubernetes_node_selectors` | Node selectors for pod scheduling | map(any) | `{}` |
-| `kubernetes_tolerations` | List of Kubernetes tolerations to apply. Each entry must include `effect`, `key`, `operator`, and `value`. | list(map(string)) | `[]` |
+| `kubernetes_tolerations` | List of Kubernetes tolerations to apply. Each entry must include `effect`, `key`, `operator`, and `value`. | list(object) | `[]` |
 | `kubernetes_override_image_connector` | Custom container registry connector | string | `skipped` |
 | `kubernetes_override_image_name` | Custom IACM provisioner image | string | `skipped` |
 

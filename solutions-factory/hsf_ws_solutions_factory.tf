@@ -15,6 +15,12 @@ locals {
   hsf_solutions_factory_id = "harness_solutions_factory"
 }
 
+data "harness_platform_workspace" "solutions_factory" {
+  identifier = local.hsf_solutions_factory_id
+  org_id     = "Harness_Platform_Management"
+  project_id = "Solutions_Factory"
+}
+
 // Create Solutions Factory workspace for IACM resource management and deployments
 resource "harness_platform_workspace" "solutions_factory" {
   lifecycle {
@@ -23,9 +29,9 @@ resource "harness_platform_workspace" "solutions_factory" {
       provisioner_version,
       repository_connector,
       repository,
-      repository_branch,
-      repository_commit,
-      repository_sha,
+      # repository_branch,
+      # repository_commit,
+      # repository_sha,
       default_pipelines
     ]
   }
@@ -37,9 +43,11 @@ resource "harness_platform_workspace" "solutions_factory" {
   provisioner_version = "skipped"
 
   // Use Solutions Factory repository connector (customer can override after deployment)
-  repository_connector = "skipped" # data.harness_platform_workspace.pilot_light.repository_connector
-  repository           = "skipped"
-  repository_branch    = "skipped"
+  repository_connector = data.harness_platform_workspace.solutions_factory.repository_connector
+  repository           = data.harness_platform_workspace.solutions_factory.repository
+  repository_branch    = data.harness_platform_workspace.solutions_factory.repository_branch != "" ? data.harness_platform_workspace.solutions_factory.repository_branch : null
+  repository_commit    = data.harness_platform_workspace.solutions_factory.repository_commit != "" ? data.harness_platform_workspace.solutions_factory.repository_commit : null
+  repository_sha       = data.harness_platform_workspace.solutions_factory.repository_sha != "" ? data.harness_platform_workspace.solutions_factory.repository_sha : null
   #
   repository_path         = "solutions-factory"
   cost_estimation_enabled = false

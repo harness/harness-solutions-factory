@@ -3,7 +3,7 @@
 resource "harness_platform_pipeline" "Rotate_HSF_Token" {
   count = local.should_create_service_account ? 1 : 0
   depends_on = [
-    time_sleep.core_resources
+    harness_time_sleep.core_resources
   ]
   identifier  = "Rotate_HSF_Token"
   name        = "Rotate HSF Token"

@@ -2,6 +2,13 @@
 
 All notable changes to the Harness Solutions Factory Hub module are documented in this file.
 
+## v2.5.4
+
+### Updated
+- Bump minimum Harness provider version to `0.45`
+- Migrated from HashiCorp time provider to Harness native time_sleep resource for improved integration
+- Removed HashiCorp time provider dependency from Terraform configuration
+
 ## v2.5.1
 
 ### Changed

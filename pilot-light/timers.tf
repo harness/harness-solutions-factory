@@ -1,7 +1,7 @@
 // HSF Timer Configurations
 
 // Wait for new project to fully initialize (avoids race condition)
-resource "time_sleep" "project_setup" {
+resource "harness_time_sleep" "project_setup" {
   depends_on = [
     harness_platform_project.solutions
   ]
@@ -10,9 +10,9 @@ resource "time_sleep" "project_setup" {
 }
 
 // Allow eventual consistency for API propagation before proceeding with resources
-resource "time_sleep" "core_resources" {
+resource "harness_time_sleep" "core_resources" {
   depends_on = [
-    time_sleep.project_setup,
+    harness_time_sleep.project_setup,
     harness_platform_connector_docker.hsf,
     harness_platform_secret_text.harness_platform_key,
     harness_platform_connector_git.hsf_official

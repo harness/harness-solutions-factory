@@ -9,7 +9,7 @@ locals {
 // Create pipeline to unpack Solutions Factory (only if enabled via variable)
 resource "harness_platform_pipeline" "unpack_solutions_factory" {
   count       = var.should_unpack ? 1 : 0
-  depends_on  = [time_sleep.core_resources]
+  depends_on  = [harness_time_sleep.core_resources]
   identifier  = "Unpack_Solutions_Factory"
   name        = "Unpack Solutions Factory"
   org_id      = harness_platform_organization.factories.id

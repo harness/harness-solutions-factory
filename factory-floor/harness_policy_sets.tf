@@ -77,7 +77,7 @@ resource "harness_platform_policyset" "policy_sets" {
 }
 
 // Delay resource cleanup to avoid race condition when removing PolicySets
-resource "time_sleep" "policy_set_setup" {
+resource "harness_time_sleep" "policy_set_setup" {
   depends_on = [
     harness_platform_policyset.policy_sets
   ]

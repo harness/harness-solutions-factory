@@ -6,7 +6,7 @@ locals {
 // Create Pilot-Light workspace for bootstrap and foundational configurations
 resource "harness_platform_workspace" "pilot_light" {
   depends_on = [
-    time_sleep.core_resources
+    harness_time_sleep.core_resources
   ]
   lifecycle {
     ignore_changes = [

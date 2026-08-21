@@ -15,7 +15,7 @@ resource "harness_platform_project" "selected" {
 }
 
 // Wait for project resources to fully initialize (avoids race condition)
-resource "time_sleep" "project_setup" {
+resource "harness_time_sleep" "project_setup" {
   depends_on = [
     harness_platform_project.selected
   ]
@@ -25,7 +25,7 @@ resource "time_sleep" "project_setup" {
 
 // Fetch project details after initialization
 data "harness_platform_project" "selected" {
-  depends_on = [time_sleep.project_setup]
+  depends_on = [harness_time_sleep.project_setup]
   identifier = harness_platform_project.selected.id
   org_id     = data.harness_platform_organization.selected.id
 }

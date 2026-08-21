@@ -45,8 +45,7 @@ terraform apply
 
 This module requires:
 - **Terraform** version >= 1.10.0, < 2.0.0
-- **Harness Provider** (version >= 0.41)
-- **HashiCorp Time Provider** (version ~> 0.14.0)
+- **Harness Provider** (version >= 0.45)
 
 Required credentials must be provided via Terraform variables or environment variables.
 
@@ -60,11 +59,7 @@ terraform {
   required_providers {
     harness = {
       source  = "harness/harness"
-      version = ">= 0.41"
-    }
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.14.0"
+      version = ">= 0.45"
     }
   }
 }
@@ -119,7 +114,7 @@ Harness credentials can be configured via:
 | `kubernetes_serviceaccount` | Service account for K8s pods | string | `null` |
 | `kubernetes_override_run_as_user` | Unix UID for pod security context | string | `null` |
 | `kubernetes_node_selectors` | Node selectors for pod scheduling | map(any) | `{}` |
-| `kubernetes_tolerations` | List of Kubernetes tolerations to apply. Each entry must include `effect`, `key`, `operator`, and `value`. | list(map(string)) | `[]` |
+| `kubernetes_tolerations` | List of Kubernetes tolerations to apply. Each entry must include `effect`, `key`, `operator`, and `value`. | list(object) | `[]` |
 | `kubernetes_override_image_connector` | Custom container registry connector | string | `null` |
 | `kubernetes_override_image_name` | Custom IACM provisioner image | string | `null` |
 

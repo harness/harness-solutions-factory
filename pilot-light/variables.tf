@@ -14,7 +14,6 @@ variable "harness_platform_key" {
   type        = string
   description = "Harness Platform API Key for authentication (falls back to HARNESS_PLATFORM_API_KEY env var)"
   sensitive   = true
-  default     = null
 }
 
 variable "store_backend" {
@@ -83,7 +82,7 @@ variable "hsf_source_fetch_type" {
 variable "hsf_source_branch" {
   type        = string
   description = "SCM source reference (branch name, tag, or commit SHA) for IACM workspaces"
-  default     = "v2.5.3"
+  default     = "v2.5.4"
 }
 
 // Kubernetes Configurations for Pipeline Execution

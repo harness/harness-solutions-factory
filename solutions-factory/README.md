@@ -44,7 +44,7 @@ terraform apply
 
 ## Providers
 
-This module requires the [Harness Provider](https://registry.terraform.io/providers/harness/harness/latest/docs) (version >= 0.41). Required credentials must be provided via Terraform variables or environment variables (`HARNESS_ACCOUNT_ID`, `HARNESS_PLATFORM_API_KEY`).
+This module requires the [Harness Provider](https://registry.terraform.io/providers/harness/harness/latest/docs) (version >= 0.45). Required credentials must be provided via Terraform variables or environment variables (`HARNESS_ACCOUNT_ID`, `HARNESS_PLATFORM_API_KEY`).
 
 ### Required Provider Configuration
 
@@ -54,11 +54,7 @@ terraform {
   required_providers {
     harness = {
       source  = "harness/harness"
-      version = ">= 0.41"
-    }
-    time = {
-      source  = "hashicorp/time"
-      version = "~> 0.14.0"
+      version = ">= 0.45"
     }
   }
 }
@@ -95,17 +91,8 @@ Pass credentials via `terraform.tfvars` or environment variables:
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| `harness_platform_account` | Harness account number | string | *required* |
+| `harness_platform_account` | Harness account number | string | `null` (uses `HARNESS_ACCOUNT_ID` env var) |
 | `harness_platform_url` | Harness platform URL | string | `https://app.harness.io/gateway` |
-
-### Git Configuration (Required)
-
-| Name | Description | Type | Default |
-| --- | --- | --- | --- |
-| `existing_harness_platform_key_ref` | Reference to existing Harness API key secret | string | *required* |
-| `git_connector_ref` | Git repository connector reference | string | *required* |
-| `git_repository_name` | Git repository name | string | *required* |
-| `git_repository_branch` | Git branch for deployment | string | `main` |
 
 ### Project Configuration
 
@@ -113,6 +100,25 @@ Pass credentials via `terraform.tfvars` or environment variables:
 | --- | --- | --- | --- |
 | `organization_id` | Organization reference | string | `Harness_Platform_Management` |
 | `project_id` | Solutions Factory project identifier | string | `Solutions_Factory` |
+
+### HSF Source Control (Required)
+
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| `existing_harness_platform_key_ref` | Reference to existing Harness Platform API key (secret reference) | string | *required* |
+| `hsf_source_connector` | SCM connector for IACM workspaces (use 'skipped' for default official repositories) | string | `skipped` |
+| `hsf_source_repository` | Repository name for IACM workspaces | string | `harness-solutions-factory` |
+| `hsf_source_fetch_type` | Fetch type: `branch`, `tag`, or `sha` | string | `tag` |
+| `hsf_source_branch` | Branch/tag/SHA to fetch | string | `v2.5.4` |
+
+### Git Configuration (Required)
+
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| `git_connector_ref` | Git connector for template library deployment (use 'skipped' for account default) | string | `skipped` |
+| `git_repository_name` | Git repository name for template library (use 'skipped' for account default) | string | `skipped` |
+| `git_repository_fetch_type` | Git fetch type: `branch`, `tag`, `sha`, or `skipped` | string | `skipped` |
+| `git_repository_branch` | Git branch/tag/SHA (use 'skipped' for account default) | string | `skipped` |
 
 ### Kubernetes (Optional)
 
@@ -123,7 +129,7 @@ Pass credentials via `terraform.tfvars` or environment variables:
 | `kubernetes_serviceaccount` | Service account for K8s pods | string | `skipped` |
 | `kubernetes_override_run_as_user` | Unix UID for pod security context | string | `skipped` |
 | `kubernetes_node_selectors` | Node selectors for pod scheduling | map(any) | `{}` |
-| `kubernetes_tolerations` | List of Kubernetes tolerations to apply. Each entry must include `effect`, `key`, `operator`, and `value`. | list(map(string)) | `[]` |
+| `kubernetes_tolerations` | List of Kubernetes tolerations to apply. Each entry must include `effect`, `key`, `operator`, and `value`. | list(object) | `[]` |
 | `kubernetes_override_image_connector` | Custom container registry connector | string | `skipped` |
 | `kubernetes_override_image_name` | Custom IACM provisioner image | string | `skipped` |
 
