@@ -2,6 +2,11 @@
 
 All notable changes to the Harness Solutions Factory module are documented in this file.
 
+## v2.5.5
+
+### Updated
+- Re-added HashiCorp time provider dependency into Terraform configuration to resolve an issue with existing deployments.
+
 ## v2.5.4
 
 ### Updated
