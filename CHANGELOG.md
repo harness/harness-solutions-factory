@@ -2,12 +2,15 @@
 
 All notable repository-level changes to the Harness Solutions Factory are documented in this file. Detailed, module-specific changes are tracked in the CHANGELOG within each individual Terraform module directory.
 
+## Version v2.5.6
+
+### Updated
+- Resolve issue with `Deploy Factory Floor` pipeline resolution of source branch for factory_floor
 
 ## Version v2.5.5
 
 ### Updated
 - Re-added HashiCorp time provider dependency into Terraform configuration to resolve an issue with existing deployments.
-
 
 ## Version v2.5.4
 _Harness provider upgrade, remote time provider migration, and documentation improvements_

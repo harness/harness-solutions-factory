@@ -2,6 +2,9 @@
 
 All notable changes to the Harness Solutions Factory module are documented in this file.
 
+## v2.5.6
+- Resolve issue with `Deploy Factory Floor` pipeline resolution of source branch for factory_floor
+
 ## v2.5.5
 
 ### Updated

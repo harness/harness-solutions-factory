@@ -83,7 +83,17 @@ resource "harness_platform_pipeline" "Deploy_Factory_Floor" {
         :
         "branch"
       )
-      GIT_REPOSITORY_BRANCH : harness_platform_workspace.solutions_factory.repository_branch
+      GIT_REPOSITORY_BRANCH : (
+        harness_platform_workspace.solutions_factory.repository_commit != ""
+        ?
+        harness_platform_workspace.solutions_factory.repository_commit
+        :
+        harness_platform_workspace.solutions_factory.repository_sha != ""
+        ?
+        harness_platform_workspace.solutions_factory.repository_sha
+        :
+        harness_platform_workspace.solutions_factory.repository_branch
+      )
 
       HTL_REPOSITORY_CONNECTOR : local.harness_template_library_repo_connector
       HTL_REPOSITORY_NAME : local.harness_template_library_repo_name
