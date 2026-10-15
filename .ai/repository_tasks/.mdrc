@@ -1,0 +1,8 @@
+# Repository Management Tasks
+
+## Trigger Commands or Questions
+
+- **Generate a new CHANGELOG** - Read and Execute fully `task_changelog_update.md`
+- **What would the next Version be?** - Read and Execute fully `task_determine_next_version.md`
+- **Update the README** - Read and Execute fully `task_generate_readme_update.md`
+- **Generate a commit message** - Read and Execute fully `task_rollup_commit.md`
