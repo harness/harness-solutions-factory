@@ -109,7 +109,7 @@ Pass credentials via `terraform.tfvars` or environment variables:
 | `hsf_source_connector` | SCM connector for IACM workspaces (use 'skipped' for default official repositories) | string | `skipped` |
 | `hsf_source_repository` | Repository name for IACM workspaces | string | `harness-solutions-factory` |
 | `hsf_source_fetch_type` | Fetch type: `branch`, `tag`, or `sha` | string | `tag` |
-| `hsf_source_branch` | Branch/tag/SHA to fetch | string | `v2.5.4` |
+| `hsf_source_branch` | Branch/tag/SHA to fetch | string | `v2.5.7` |
 
 ### Git Configuration (Required)
 

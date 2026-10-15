@@ -121,7 +121,7 @@ _**NOTE**: This option should only be used when performing an initial setup of H
 | `scm_source_connector` | SCM connector reference; use `org.` or `account.` prefix as needed | string | `skipped` |
 | `scm_source_repository` | Repository name to use for IACM workspaces | string | `harness-solutions-factory` |
 | `scm_source_fetch_type` | Fetch type: `branch`, `tag`, or `sha` | string | `tag` |
-| `scm_source_branch` | Branch/tag/SHA to fetch | string | `v2.5.4` |
+| `scm_source_branch` | Branch/tag/SHA to fetch | string | `v2.5.7` |
 
 ### Kubernetes (Optional)
 

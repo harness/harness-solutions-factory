@@ -2,6 +2,17 @@
 
 All notable repository-level changes to the Harness Solutions Factory are documented in this file. Detailed, module-specific changes are tracked in the CHANGELOG within each individual Terraform module directory.
 
+## Version v2.5.7
+
+### Added
+- Agent-specific workflow instructions for repository management tasks (CHANGELOG, README, versioning, commits)
+- Automated version determination logic with infrastructure file exemption rules
+- Repository task automation framework in `.ai/repository_tasks/`
+
+### Updated
+- Default HSF source branch references from v2.5.4 to v2.5.7 in pilot-light and solutions-factory modules
+- Enhanced `.gitignore` with additional exclusions for better repository hygiene
+
 ## Version v2.5.6
 
 ### Updated
